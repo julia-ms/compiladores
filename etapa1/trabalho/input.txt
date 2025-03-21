@@ -1,0 +1,6 @@
+int main(){
+    int 245;
+    char = "isso aí";
+    //oii
+    byte 1;
+}

@@ -1,0 +1,75 @@
+// anotações da aula do dia 20/03
+
+%{
+int lineNumber = 1;
+int running = 1;
+%}
+
+// tem que criar um contexto novo pq o nosso principal vai ignorar tudo até o comentário acabar, mas precisamos seguir contando as linhas
+%x COMMENT
+
+%%
+
+"int" { fprintf(stderr, "KEYWORD_INT "); } 
+"if" { fprintf(stderr, "KEYWORD_IF "); } 
+"for" { fprintf(stderr, "KEYWORD_FOR "); } 
+0+  { fprintf(stderr, "LIT_0ARRAY "); } 
+[A-Za-z]+ { fprintf(stderr, "NOME "); } 
+[ \t] 
+==.* // . significa qualquer caractere que não seja \n
+"<<" { BEGIN(COMMENT); }
+[-.,:;+*/=(){}[\]] { fprintf(stderr, "OPERATOR %c " , yytext[0]); } //esse vai ficar {return yytext[0]; }
+\n { ++lineNumber; } 
+. { return 999; } 
+
+
+// depois tudo ali em cima foi pro lixo e ficou tipo
+"int" { return 256; }
+"if"  { return 257; }
+// a partir de 256 pra não conflitar com a tabela asc
+
+<COMMENT>\n { ++lineNumber;}
+<COMMENT>">>" { BEGIN(INITIAL);}
+<COMMENT>. 
+
+%%
+
+int main(int argc, charr** argv){
+  int tok;
+  if (argc < 2){
+     fprintf(stderr, "Call a.out filename\n "); 
+     exit(1) 
+  } 
+  if(0 == (yyin=fopen(argv[1],"r"))){
+    fprintf(stderr, "nao abriu o arquivo") 
+    exit(1);
+  }
+  while(running){
+  yylex();
+  if(!running) break;
+
+  switch(tok)
+  {
+    case 256: { fprintf(stderr, "KEYWORD_INT) } break; 
+    case 257: { fprintf(stderr, "KEYWORD_FOR) } break;
+  } 
+  fprintf(stderr, "File had %d lines", lineNumber);
+  }
+}
+
+int yywrap(){
+  running = 0;
+  return 1;
+}
+
+----------
+// exemplo de makefile
+target: etapa1
+etapa1: lex.yy.c
+              gcc lex.yy.c -o etapa1
+
+lex.yy.c: scanner.l
+          flex scanner.l
+
+clean:
+     rm etapa1 lex.yy.c
