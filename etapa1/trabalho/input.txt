@@ -1,6 +1,9 @@
 int main(){
     int 245;
     char = "isso aí";
-    //oii
+    // int
     byte 1;
+    /-- int vamo
+    neh byte haha
+    --/
 }
