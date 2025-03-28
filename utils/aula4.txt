@@ -1,0 +1,74 @@
+// aula dia 27/03 - parte 2
+
+etapa 2 do trabalho: descrever a sintaxe do trabalho
+
+
+// parser.ypp
+//pra rodar: bison parser.ypp -d
+// -d pra gerar o .hpp
+
+%{
+    #include <stdio.h>
+    #include <string>
+    using namespace std;
+    int yylex();
+    void yyerror(string msg);
+%}
+
+%token KW_INT
+%token KW_IF
+%token KW_FOR
+%token LIT_ZEROS
+%token TOKEN_ID
+
+%%
+
+program: ldef
+    ;
+ldef: def ';' ldef
+    |
+    ;
+def : KW_INT TOKEN_ID '=' LIT_ZEROS
+    | KW_IF expr def
+    |
+    ;
+expr: TOKEN_ID
+    | LIT_ZEROS
+    | expr '+' expr
+    ;
+
+
+%%
+
+void yyerror(string msg){
+    fprintf(stderr, "Erro de sintaxe\n");
+    exit(3);
+}
+
+
+// Makefile
+
+CXX = g++
+CXXFLAGS = -std=c++11 -Wall
+
+target: etapa2
+
+etapa1: lex.yy.o main.o symbols.o parser.tab.o 
+	$(CXX) lex.yy.o main.o symbols.o  parser.tab.o -o etapa2
+
+%.o: %.cpp 
+	$(CXX) $(CXXFLAGS) $< -c
+
+lex.yy.cpp: scanner.l
+	flex -o lex.yy.cpp scanner.l 
+
+parser.tab.cpp: parser.ypp
+    bison parser.ypp -d 
+
+clean:
+	rm etapa1 lex.yy.cpp parser.tab.cpp *.o
+
+
+//main.cpp
+
+tira todo aquele switch case e substitui por yyparse();

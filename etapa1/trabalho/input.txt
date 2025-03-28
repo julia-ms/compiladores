@@ -1,9 +1,32 @@
+/--
+    Júlia Mombach da Silva (00281023)
+    Compiladores - Prof Marcelo Johann
+    Etapa 1
+--/
+
 int main(){
-    int 245;
-    char = "isso aí";
-    // int
+
+    // declarando as variáveis
+    int inTeiro_1 = 27;
+    byte _byte1 = 1;
+    string texto = "isso aí!\n";
+    "ela disse \"eu te amo\"""ela respondeu \"te amo mais\"";
+    'o', 'T', '-';
+    real = 54/67;
+    byte, int, real, if, else, do, while, read, print, return
+    , ; : ( ) [ ] { } = + - * / % < > & | ~
+    <=
+    >=
+    ==
+    !=
+    
     byte 1;
+
     /-- int vamo
     neh byte haha
     --/
+    int 322;        
+    real = 54/67;
+    123456789/456789
+    
 }

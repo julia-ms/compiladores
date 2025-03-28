@@ -1,15 +1,19 @@
 %{
+// Júlia Mombach da Silva 
 
 #include "tokens.h"
+#include "symbols.hpp"
 
 int lineNumber = 1;
 int running = 1;
 
-void initMe() {
-
-}
+char* reverseINT(char* num);
+char* reverseREAL(char* num);
 
 %}
+
+%option nounput
+%option noinput
 
 %x COMMENT
 
@@ -32,28 +36,31 @@ void initMe() {
 "=="                        { return OPERATOR_EQ; }
 "!="                        { return OPERATOR_DIF; }
 
-[,;:()\[\]{}=\+\-*/%<>&|~]  { return yytext[0]; }
+[,;:()\[\]{}=\+\-*/%<>&|~]  { return yytext[0]; } //menos na frente?
 
-[0-9]+                      { return LIT_INT; }
-[0-9]+\/[0-9]+              { return LIT_REAL; }
-\"([^\\\"]|\\.)*\"          { return LIT_STRING; }
-\'[^\']\'                   { return LIT_CHAR; }
+[a-zA-Z_][a-zA-Z0-9_]*      { symbolInsert(TK_IDENTIFIER, yytext); return TK_IDENTIFIER; }
 
-[ \t] ;
-\n                          { lineNumber++; }
+[0-9]+                      { symbolInsert(LIT_INT, reverseINT(yytext)); return LIT_INT; }
+[0-9]+\/[0-9]+              { symbolInsert(LIT_REAL, reverseREAL(yytext)); return LIT_REAL; }
+\"([^\\\"]|\\.)*\"          { symbolInsert(LIT_STRING, yytext); return LIT_STRING; }
+\'[^\']\'                   { symbolInsert(LIT_CHAR, yytext); return LIT_CHAR; }
+
+[ \t]                       { }
+\r?\n                       { lineNumber++; }
 
 "//".*
 
-"\/--"                        { BEGIN(COMMENT); }
+"\/--"                      { BEGIN(COMMENT); }
 
 .                           { return TOKEN_ERROR; } 
 
-<COMMENT>\n { ++lineNumber; }
-<COMMENT>"--/" { BEGIN(INITIAL); }
+<COMMENT>\n                 { ++lineNumber; }
+<COMMENT>"--/"              { BEGIN(INITIAL); }
 <COMMENT>. 
 
 
 %%
+
 
 int getLineNumber(){
     return lineNumber;
@@ -63,7 +70,37 @@ int isRunning(){
     return running;
 }
 
+void initMe() {
+
+}
+
 int yywrap(){
     running = 0;
     return 1;
+}
+
+char* reverseINT(char* num) {
+    int len = strlen(num);
+    for (int i = 0; i < len / 2; i++) {
+        char temp = num[i];
+        num[i] = num[len - i - 1];
+        num[len - i - 1] = temp;
+    }
+    return num;
+}
+
+char* reverseREAL(char* num){
+
+    char* num1 = strtok(num, "/");
+    char* num2 = strtok(NULL, "/");
+    
+    reverseINT(num1);
+    reverseINT(num2);
+
+    size_t revSize = strlen(num1) + strlen(num2) + 2;
+    char* rev = (char*)malloc(revSize);
+    snprintf(rev, revSize, "%s/%s", num1, num2);
+
+    return rev;
+
 }

@@ -1,0 +1,48 @@
+// aula do dia 27/03
+
+// symbols.hpp - tabela de simbolos
+
+#include <string>
+
+using namespace std;
+string SymbleNAME[] = {
+    "SYMBLE_INVALID", "SYMBLE_ZEROS", "SYMBLE_ID"
+};
+
+struct SYMBOL {
+    int type;
+    string text;
+    public:
+        SYMBOL(int t, string s): type(t), text(s) {};
+};
+
+SYMBOL *symbolInsert(int type, char *text);
+void symbolPrintTable();
+
+
+
+// symbols.cpp
+
+#include "symbols.hpp"
+#include <string>
+#include <map>
+
+using namespace std;
+
+map<string, SYMBOL*> SymbolTable;
+
+SYMBOL *symbolInsert(int type, char *text){
+    if(SymbolTable.find(string(text)) != SymbolTable.end()){
+        return SymbolTable.find(string(text))->second;
+    }
+    SYMBOL *newSymbol = new SYMBOL(type, string(text));
+    SymbolNAME[string(text)] = newSymbol;
+    return newSymbol;
+
+}
+
+void symbolPrintTable(){
+    for(auto s: SymbolTable){
+        print("Symbol[%d, %s]\n", s.second->type, s.second->text.c_str());
+    }
+}

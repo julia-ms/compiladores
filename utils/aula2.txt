@@ -1,0 +1,37 @@
+// aula do dia 25/03
+
+// symbols.hpp - tabela de simbolos
+
+#include <string>
+
+using namespace std;
+
+struct SYMBOL {
+    int type;
+    string text;
+    public:
+        SYMBOL(int t, string s): type(t), text(s) {};
+};
+
+SYMBOL *symbolInsert(int type, char *text);
+void symbolPrintTable();
+
+
+
+// symbols.cpp
+
+#include "symbols.hpp"
+#include <string>
+#include <map>
+
+map<string, SYMBOL*> SymbolTable;
+
+SYMBOL *symbolInsert(int type, char *text){
+    SYMBOL *newSymbol = new SYMBOL(type, string(text));
+    SymbolTable[string(text)] = newSymbol;
+
+}
+
+void symbolPrintTable(){
+
+}
