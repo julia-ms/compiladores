@@ -1,0 +1,140 @@
+// Julia Mombach da Silva
+// Compiladores - etapa 2
+
+%{
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string>
+    using namespace std;
+    int getLineNumber();
+
+    int yylex();
+    void yyerror(string msg);
+%}
+
+%token KW_BYTE
+%token KW_INT
+%token KW_REAL
+ 
+%token KW_IF
+%token KW_ELSE
+%token KW_DO
+%token KW_WHILE
+%token KW_READ
+%token KW_PRINT
+%token KW_RETURN
+ 
+%token OPERATOR_LE
+%token OPERATOR_GE
+%token OPERATOR_EQ
+%token OPERATOR_DIF
+ 
+%token TK_IDENTIFIER
+ 
+%token LIT_INT
+%token LIT_CHAR
+%token LIT_REAL
+%token LIT_STRING
+ 
+%token TOKEN_ERROR
+
+%left '<' '>' OPERATOR_DIF OPERATOR_EQ OPERATOR_GE OPERATOR_LE
+%left '+' '-'
+%left '*' '/'
+
+%start program
+
+%%
+
+program         :   ldef
+                ;
+
+ldef            :   def ldef
+                |
+                ;
+
+def             :   type TK_IDENTIFIER '=' literal ';'
+                |   type TK_IDENTIFIER '[' LIT_INT ']' vector_init ';'
+                |   type TK_IDENTIFIER '(' function_init ')' command_block
+                ;
+
+type            :   KW_INT
+                |   KW_BYTE
+                |   KW_REAL
+                ;
+
+literal         :   LIT_INT
+                |   LIT_CHAR
+                |   LIT_REAL
+                ;
+
+vector_init     :   
+                |   '=' literal vector_lits
+                ;
+
+vector_lits     :
+                |   ',' literal vector_lits
+                ;
+
+function_init   :
+                |   type literal function_init2
+                ;
+
+function_init2  :
+                |   ',' type literal function_init2
+                ;
+
+command_block   :   '{' commands '}'
+                ;
+
+commands        : 
+                |   command commands
+
+command         :   
+                |   command_block
+                |   TK_IDENTIFIER '=' expression ';'
+                |   TK_IDENTIFIER '[' expression ']' '=' expression ';'
+                |   KW_READ TK_IDENTIFIER ';'
+                |   KW_PRINT
+                |   KW_RETURN expression ';'
+                ;
+
+expression      :   TK_IDENTIFIER
+                |   TK_IDENTIFIER '[' expression ']'
+                |   literal
+                |   expression operator expression
+                |   '(' expression ')'
+                |   TK_IDENTIFIER '(' function_args ')'
+                ;
+
+function_args   :   
+                |   expression function_args2
+                ;
+
+function_args2  : 
+                |   ',' expression function_args2
+                ;
+
+operator        :   '+'
+                |   '-'
+                |   '*'
+                |   '/'
+                |   '<'
+                |   '>'
+                |   '='
+                |   '&'
+                |   '|'
+                |   '~'
+                |   OPERATOR_DIF
+                |   OPERATOR_EQ
+                |   OPERATOR_GE
+                |   OPERATOR_LE
+                ;
+
+
+%%
+
+void yyerror(string msg){
+    fprintf(stderr, "Erro de sintaxe na linha %d\n", getLineNumber());
+    exit(3);
+}
