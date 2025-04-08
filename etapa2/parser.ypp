@@ -35,12 +35,15 @@
 %token LIT_CHAR
 %token LIT_REAL
 %token LIT_STRING
- 
+
 %token TOKEN_ERROR
 
 %left '<' '>' OPERATOR_DIF OPERATOR_EQ OPERATOR_GE OPERATOR_LE
+%left '='
 %left '+' '-'
 %left '*' '/'
+%left '&' '~' '|'
+
 
 %start program
 
@@ -77,32 +80,50 @@ vector_lits     :
                 ;
 
 function_init   :
-                |   type literal function_init2
+                |   type TK_IDENTIFIER function_init2
                 ;
 
 function_init2  :
-                |   ',' type literal function_init2
+                |   ',' type TK_IDENTIFIER function_init2
                 ;
 
-command_block   :   '{' commands '}'
+command_block   :   '{' command_list '}'
                 ;
 
-commands        : 
-                |   command commands
+command_list    : 
+                |   command command_list
+                ;
 
-command         :   
-                |   command_block
+command         :   command_block
                 |   TK_IDENTIFIER '=' expression ';'
                 |   TK_IDENTIFIER '[' expression ']' '=' expression ';'
                 |   KW_READ TK_IDENTIFIER ';'
-                |   KW_PRINT
+                |   KW_PRINT print ';'
                 |   KW_RETURN expression ';'
+                |   KW_IF '(' expression ')' command
+                |   KW_IF '(' expression ')' command KW_ELSE command
+                |   KW_WHILE expression KW_DO command
+                |   KW_DO command KW_WHILE expression ';'
+                |   ';'
                 ;
 
 expression      :   TK_IDENTIFIER
                 |   TK_IDENTIFIER '[' expression ']'
                 |   literal
-                |   expression operator expression
+                |   expression '+' expression
+                |   expression '-' expression
+                |   expression '*' expression
+                |   expression '/' expression
+                |   expression '<' expression
+                |   expression '>' expression
+                |   expression '=' expression
+                |   expression '&' expression
+                |   expression '|' expression
+                |   expression '~' expression
+                |   expression OPERATOR_DIF expression
+                |   expression OPERATOR_EQ expression
+                |   expression OPERATOR_GE expression
+                |   expression OPERATOR_LE expression
                 |   '(' expression ')'
                 |   TK_IDENTIFIER '(' function_args ')'
                 ;
@@ -115,22 +136,14 @@ function_args2  :
                 |   ',' expression function_args2
                 ;
 
-operator        :   '+'
-                |   '-'
-                |   '*'
-                |   '/'
-                |   '<'
-                |   '>'
-                |   '='
-                |   '&'
-                |   '|'
-                |   '~'
-                |   OPERATOR_DIF
-                |   OPERATOR_EQ
-                |   OPERATOR_GE
-                |   OPERATOR_LE
+print           :   LIT_STRING print2
+                |   expression print2
                 ;
 
+print2          :   
+                |   LIT_STRING print2
+                |   expression print2
+                ;
 
 %%
 

@@ -12,11 +12,11 @@ using namespace std;
 map<string, SYMBOL*> SymbolTable;
 
 map<int, string> TokenNames = {
-    {280, "TK_IDENTIFIER"},
-    {281, "LIT_INT"},
-    {282, "LIT_CHAR"},
-    {283, "LIT_REAL"},
-    {286, "LIT_STRING"}
+    {7, "SYMBOLS_TK_IDENTIFIER"},
+    {1, "SYMBOLS_LIT_INT"},
+    {3, "SYMBOLS_LIT_CHAR"},
+    {2, "SYMBOLS_LIT_REAL"},
+    {4, "SYMBOLS_LIT_STRING"}
 };
 
 SYMBOL *symbolInsert(int type, char *text){

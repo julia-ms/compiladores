@@ -4,6 +4,11 @@
 #include "symbols.hpp"
 #include "parser.tab.hpp"
 
+#define SYMBOL_LIT_INTEGER 1
+#define SYMBOL_LIT_REAL 2
+#define SYMBOL_LIT_STRING 3
+#define SYMBOL_LIT_CHAR 4
+#define SYMBOL_IDENTIFIER 7
 
 int lineNumber = 1;
 int running = 1;
@@ -39,12 +44,12 @@ char* reverseREAL(char* num);
 
 [,;:()\[\]{}=\+\-*/%<>&|~]  { return yytext[0]; } //menos na frente?
 
-[a-zA-Z_][a-zA-Z0-9_]*      { symbolInsert(TK_IDENTIFIER, yytext); return TK_IDENTIFIER; }
+[a-zA-Z_][a-zA-Z0-9_]*      { symbolInsert(SYMBOL_IDENTIFIER, yytext); return TK_IDENTIFIER; }
 
-[0-9]+                      { symbolInsert(LIT_INT, reverseINT(yytext)); return LIT_INT; }
-[0-9]+\/[0-9]+              { symbolInsert(LIT_REAL, reverseREAL(yytext)); return LIT_REAL; }
-\"([^\\\"]|\\.)*\"          { symbolInsert(LIT_STRING, yytext); return LIT_STRING; }
-\'[^\']\'                   { symbolInsert(LIT_CHAR, yytext); return LIT_CHAR; }
+[0-9]+                      { symbolInsert(SYMBOL_LIT_INTEGER, reverseINT(yytext)); return LIT_INT; }
+[0-9]+\/[0-9]+              { symbolInsert(SYMBOL_LIT_REAL, reverseREAL(yytext)); return LIT_REAL; }
+\"([^\\\"]|\\.)*\"          { symbolInsert(SYMBOL_LIT_STRING, yytext); return LIT_STRING; }
+\'[^\']\'                   { symbolInsert(SYMBOL_LIT_CHAR, yytext); return LIT_CHAR; }
 
 [ \t]                       { }
 \r?\n                       { lineNumber++; }

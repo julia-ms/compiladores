@@ -19,7 +19,6 @@ extern int yyparse();
 
 int main(int argc, char** argv){
     initMe();
-    int tok;
 
     if (argc < 2){
         fprintf(stderr, "Call %s filename\n", argv[0]); 
@@ -39,5 +38,5 @@ int main(int argc, char** argv){
 
     printf("\nSymbols table: \n\n");
     printSymbolsTable();
-    return 0;
+    exit(0);
 }
