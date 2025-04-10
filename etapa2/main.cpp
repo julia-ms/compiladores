@@ -1,5 +1,5 @@
 // Julia Mombach da Silva 
-// /mnt/c/Users/julia/OneDrive/Documentos/GitHub/compiladores/etapa1/trabalho
+// /mnt/c/Users/julia/OneDrive/Documentos/GitHub/compiladores/etapa2
 
 #include <stdio.h>
 #include <stdlib.h>
