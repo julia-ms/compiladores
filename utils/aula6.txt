@@ -1,0 +1,95 @@
+// aula do dia 24/04/25
+
+// etapa 4
+
+// parser.ypp
+
+fundec: KW_INT TOKEN_ID '=' LIT_ZEROS
+    { $$ = new AST(AST_VARDEC, {$4}, $2); }
+
+vardec: 
+
+literal : LIT_ZEROS { $$ = new AST(AST_LIT, {}, $2);}
+
+cmdl : cmd cmdl { $$ = new AST(AST_CMDL, {$3}, $1); }
+     | { $$ = 0; }
+
+
+cmd : TOKEN_ID '=' expr { $$ = new AST(AST_ASS, {$2}, $1); }
+    | KW_IF expr cmd { astPrint($2); }
+
+
+expr: TOKEN_ID {$$ = new AST(AST_SYMBOL, {}, $1); fprintf(stderr, "variavel=%s\n, $1->text.c_str());}
+    | LIT_ZEROS {$$ = new AST(AST_SYMBOL, {}, $1); fprintf(stderr, "valor=%s\n, $1->text.c_str());}
+    | expr '+' expr {fprintf(stderr, "%d + %d\n, $1, $3);} // isso pq $2 vai ser o +
+    | expr '+' expr {fprintf(stderr, "= %d\n, $1+$3);}
+    | expr '+' expr {$$ = $1+$3; fprintf(stderr, "= %d\n, $$);}
+    | expr '+' expr {$$ = new AST(AST_ADD, {$1, $3});}
+
+???
+
+// symbols.hpp
+
+enum SymbolDataType{
+    "invalid", "char', "lit"
+}
+string SymbolsDataTypeName[]{
+    "DataType_INVALID", 
+}
+
+foto do resto
+
+substituir id por variavel, func e vector. se sobrar ids, é simbolo não definido. 
+
+// semantic.hpp
+
+#include "ast.hpp"
+void checkAndSetDeclarations(AST* node);
+void checkUndeclared(AST* node);
+void check....
+
+
+// semantic.cpp
+
+#include "semantic.hpp"
+
+void checkAndSetDeclarations(AST* node){
+    if(!node) return;
+
+    switch (node->type){
+        case AST_VARDEC:
+        case AST_FUNDEC:
+            if(node-symbol){
+                if(node->symbol->type == SYMBOL_ID){
+                    node->symbol->type = (node->type==AST_VARDEC) ? SYMBLE_VARIABLE : SYMBLE_FUNCTION;
+                    if(node->son[0]){ // se o filho existe
+                        if(node->son[0]->type == AST_TYPE_INT){
+                            node->symbol->type = DATATYPE_INT;
+                        }
+                        if(node->son[0]->type == AST_TYPE_CHAR){
+                            node->symbol->type = DATATYPE_CHAR;
+                        }
+                    }
+                }else{
+                    fprintf(stderr, "semantic error: variable redeclared\n");
+                }
+            }else{
+                fprintf(stderr, "DRAMATIC ERROR\n");
+            }
+            
+            break;
+        case AST_FUNDEC:
+    }
+
+    // from top to bottom, sons after this one
+    for(auto s: node->son){
+        astPrint(s);
+}
+
+}
+
+void checkUndeclared(AST* node){
+
+}
+
+

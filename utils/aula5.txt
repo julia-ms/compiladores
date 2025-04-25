@@ -1,0 +1,107 @@
+// aula do dia 15/04
+
+// colocar ast.hpp no scanner
+
+
+
+// parser.ypp
+
+%union {
+    SYMBOL* symbol;
+    AST* ast;
+}
+
+%token <symbol> LIT_ZEROS
+%token <ast> expr
+...
+
+cmd : TOKEN_ID '=' expr {astPrint($3)}
+
+expr: TOKEN_ID {$$ = new AST(AST_SYMBOL, {}, $1); fprintf(stderr, "variavel=%s\n, $1->text.c_str());}
+    | LIT_ZEROS {$$ = new AST(AST_SYMBOL, {}, $1); fprintf(stderr, "valor=%s\n, $1->text.c_str());}
+    | expr '+' expr {fprintf(stderr, "%d + %d\n, $1, $3);} // isso pq $2 vai ser o +
+    | expr '+' expr {fprintf(stderr, "= %d\n, $1+$3);}
+    | expr '+' expr {$$ = $1+$3; fprintf(stderr, "= %d\n, $$);}
+    | expr '+' expr {$$ = new AST(AST_ADD, {$1, $3});}
+
+
+
+// scanner.l
+
+0+ {yyval.symbol = symbolInsert(1, yytext); return LIT_ZEROS}
+
+
+
+// ast.hpp
+
+#ifndef AST_HEADER
+#include "ast.hpp"
+// as folhas são os literais e blablabla, é o que ta na tabela de simbolos
+#include <vector>
+
+using namespace std;
+enum ASTtypes{
+    AST_UNKNOWN,
+    AST_SYMBOL,
+    AST_ADD,
+    AST_SUB,
+    AST_MUL,
+    AST_DIV,
+};
+
+structAST{
+    int type;
+    SYMBOL* symbol;
+    vector<AST*> son;
+    public: AST(int t, vector<AST*> v, SYMBOL* s s=0): type(t), son(v), symbol(s) {};
+};
+
+void astPrint(AST* node, int level=0);
+
+#endif
+
+
+// ast.cpp
+#include "ast.hpp"
+#include <stdio.h>
+
+using namespace std;
+string ASTtypeNAMES[]={
+    "AST_UNKNOWN",
+    "AST_SYMBOL",
+    "AST_ADD",
+    "AST_SUB",
+    "AST_MUL",
+    "AST_DIV",
+};
+
+void astPrint(AST* node, int level){
+    if(!node) return;
+    for(int i = 0; i < level; i++) fprintf(stderr, "    ");
+    fprint(stderr,"AST: %s, %s \n", ASTtypeNAMES[node->type].c_str(), node->symbol? node->symbol->text.c_str() : "" );
+    for(auto s: node->son){
+        astPrint(s, level+1);
+    }
+}
+
+
+
+// quadro 
+
+A : B   C   D 
+$$  $1  $2  $3
+
+default {$$ = $1}
+
+gerarASM(ADD, $1, $2, $$);
+mov $1, r0
+add $2, r0
+mov r0, $$
+
+ações no yacc/bison
+- debug
+- interpretar
+- gerar assembly
+
+- criar uma árvore -> depois gera assembly (pq? pq a ordem que a gente percorre a árvore pode ser diferente da ordem que a árvore é gerada)
+AST -> Abstract Syntax Tree
