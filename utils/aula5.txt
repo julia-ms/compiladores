@@ -24,6 +24,8 @@ expr: TOKEN_ID {$$ = new AST(AST_SYMBOL, {}, $1); fprintf(stderr, "variavel=%s\n
     | expr '+' expr {$$ = $1+$3; fprintf(stderr, "= %d\n, $$);}
     | expr '+' expr {$$ = new AST(AST_ADD, {$1, $3});}
 
+expr: TOKEN_ID {$$ = new AST(AST_SYMBOL, {}, $1);}
+    | expr '+' expr {$$ = new AST(AST_ADD, {$1, $3});}
 
 
 // scanner.l
