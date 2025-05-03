@@ -22,15 +22,22 @@ extern AST* root;
 int main(int argc, char** argv){
     initMe();
 
-    if (argc < 2){
+    if (argc < 3){
         fprintf(stderr, "Call %s filename\n", argv[0]); 
         exit(1);
     } 
 
+    //entrada
     yyin = fopen(argv[1], "r");
-
     if(yyin == 0){
-        fprintf(stderr, "Error opening file");
+        fprintf(stderr, "Error opening read file");
+        exit(1);
+    }
+
+    //saida
+    FILE* output = fopen(argv[2], "w");
+    if(output == 0){
+        fprintf(stderr, "Error opening out file");
         exit(1);
     }
 
@@ -50,7 +57,10 @@ int main(int argc, char** argv){
         fprintf(stderr, "Nenhuma AST gerada.\n");
     }
 
-    
+    astToFile(root, output);
+
+    fclose(yyin);
+    fclose(output);
     
 
     exit(0);

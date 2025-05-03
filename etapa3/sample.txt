@@ -1,19 +1,19 @@
 // UFRGS - Compiladores - Marcelo Johann - 2025/1 - Exemplo atualizado
 
-byte a = 51;
+byte a = 5;
 byte b = 'x';
-byte c = 001;
+byte c = 1;
 int number = 'A';
 int x = 1;
 int y = 1;
 
 // declaracao de um vetor de 10 posicoes, inicializado
 
-int v[01] = 'a',0,'b',0,0,0,0,0,0,0;
+int v[1] = 'a',0,'b',0,0,0,0,0,0,0;
 
 // declaracao de uma matriz de 100 posicoes, nao inicializada
 
-int matrix[001]; 
+int matrix[1]; 
 
 real num = 5/7;	// note que 5/7 nao eh uma expressao, eh um literal real
 
@@ -28,14 +28,14 @@ int main ()
   number = 0;
   c = 7 - 1;
   c = 5;
-  v[7] = 55;
+  v[7] = 5;
   print v[5] 7 c;
   number = 2;
 
   print "Digite um numero: \n";
   read number;
 
-  while x<02 do
+  while x<2 do
     {
     x = x + 1;
     print ".";
@@ -46,17 +46,17 @@ int main ()
     {
     x = incn(x,1);
     y = incn(y,y);
-    } while (x<01);
+    } while (x<1);
 
   print "Dobrando algumas vezes y fica " y "\n";
 
-  if (a==51) 
+  if (a==5) 
     {
     a = a + 1;
-    print "A era=15\n";
+    print "A era=5\n";
     };
     
-  if (x==100)
+  if (x==1)
     {
     print "Nao tem como isso...\n";
     }

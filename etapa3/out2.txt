@@ -1,0 +1,46 @@
+byte a = 5;
+byte b = 'x';
+byte c = 1;
+int number = 'A';
+int x = 1;
+int y = 1;
+int v[1] = 'a', 0, 'b', 0, 0, 0, 0, 0, 0, 0;
+int matrix[1];
+real num = 5/7;
+int main(){
+number = 0;
+c = 7 - 1;
+c = 5;
+v[7] = 5;
+print v[5] 7 c;
+number = 2;
+print "Digite um numero: \n";
+read number;
+while x < 2 do {
+x = x + 1;
+print ".";
+}
+x = 1;
+do {
+x = incn(x, 1);
+y = incn(y, y);
+}
+ while (x < 1);print "Dobrando algumas vezes y fica " y "\n";
+if (a == 5){
+a = a + 1;
+print "A era=5\n";
+}
+;if (x == 1){
+print "Nao tem como isso...\n";
+}
+ else print "OK!\n";
+{
+{
+}
+}
+{
+}
+}
+int incn(int  a, int  n){
+return p + n;
+}

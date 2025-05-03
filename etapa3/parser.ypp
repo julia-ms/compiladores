@@ -144,25 +144,31 @@ command_block   :   '{' command_list '}'                                    { $$
                 ;
 
 command_list    :                                                           { $$ = nullptr; }
-                |   command command_list                                    { $$ = new AST(AST_COMMAND_LIST, {$1}, 0); }
+                |   command command_list                                    { if($2){
+                                                                                $2->son.insert($2->son.begin(), $1);
+                                                                                $$ = $2;
+                                                                              }else{
+                                                                                $$ = new AST(AST_COMMAND_LIST, {$1});
+                                                                              }
+                                                                            }
                 ;
 
 command         :   command_block                                           { $$ = new AST(AST_COMMAND, {$1}, 0); }
                 |   TK_IDENTIFIER '=' expression ';'                        { $$ = new AST(AST_COMMAND_EQ, {$3}, $1); }
-                |   TK_IDENTIFIER '[' expression ']' '=' expression ';'     
-                |   KW_READ TK_IDENTIFIER ';'
-                |   KW_PRINT print ';'
-                |   KW_RETURN expression ';'
-                |   KW_IF '(' expression ')' command
-                |   KW_IF '(' expression ')' command KW_ELSE command
-                |   KW_WHILE expression KW_DO command
-                |   KW_DO command KW_WHILE expression ';'
-                |   ';'
+                |   TK_IDENTIFIER '[' expression ']' '=' expression ';'     { $$ = new AST(AST_COMMAND_VEC_EQ, {$3, $6}, $1); }
+                |   KW_READ TK_IDENTIFIER ';'                               { $$ = new AST(AST_COMMAND_READ, {}, $2); }
+                |   KW_PRINT print ';'                                      { $$ = new AST(AST_COMMAND_PRINT, {$2}, 0); }
+                |   KW_RETURN expression ';'                                { $$ = new AST(AST_COMMAND_RETURN, {$2}, 0); }
+                |   KW_IF '(' expression ')' command                        { $$ = new AST(AST_COMMAND_IF, {$3, $5}, 0); }
+                |   KW_IF '(' expression ')' command KW_ELSE command        { $$ = new AST(AST_COMMAND_IF_ELSE, {$3, $5, $7}, 0); }
+                |   KW_WHILE expression KW_DO command                       { $$ = new AST(AST_COMMAND_WHILE_DO, {$2, $4}, 0); }
+                |   KW_DO command KW_WHILE expression ';'                   { $$ = new AST(AST_COMMAND_DO_WHILE, {$2, $4}, 0); }
+                |   ';'                                                     { $$ = new AST(AST_COMMAND_PV, {}, 0); }
                 ;
 
 expression      :   TK_IDENTIFIER                                           { $$ = new AST(AST_EXPRESSION, {}, $1); }
-                |   TK_IDENTIFIER '[' expression ']'                        
-                |   literal
+                |   TK_IDENTIFIER '[' expression ']'                        { $$ = new AST(AST_EXPRESSION_VEC, {$3}, $1); }
+                |   literal                                                 { $$ = new AST(AST_LIT, {$1}, 0);}
                 |   expression '+' expression                               { $$ = new AST(AST_ADD, {$1, $3}, 0); }
                 |   expression '-' expression                               { $$ = new AST(AST_SUB, {$1, $3}, 0); }
                 |   expression '*' expression                               { $$ = new AST(AST_MULT, {$1, $3}, 0); }
@@ -176,25 +182,63 @@ expression      :   TK_IDENTIFIER                                           { $$
                 |   expression OPERATOR_EQ expression                       { $$ = new AST(AST_EQ, {$1, $3}, 0); }
                 |   expression OPERATOR_GE expression                       { $$ = new AST(AST_GE, {$1, $3}, 0); }
                 |   expression OPERATOR_LE expression                       { $$ = new AST(AST_LE, {$1, $3}, 0); }
-                |   '(' expression ')'
-                |   TK_IDENTIFIER '(' function_args ')'
+                |   '(' expression ')'                                      { $$ = new AST(AST_PARENTHESIS, {$2}, 0); }
+                |   TK_IDENTIFIER '(' function_args ')'                     { $$ = new AST(AST_FUNCTION_CALL, {$3}, $1); }
                 ;
 
-function_args   :   
-                |   expression function_args2
+function_args   :                                                           { $$ = nullptr; }
+                |   expression function_args2                               { AST* param = new AST(AST_PARAM2, { $1 }, 0);
+                                                                              std::vector<AST*> list;
+                                                                              list.push_back(param);
+                                                                              if ($2) {
+                                                                                list.insert(list.end(), $2->son.begin(), $2->son.end());
+                                                                              }
+                                                                              $$ = new AST(AST_FUNCTION_ARGS, list);
+                                                                            }
                 ;
 
-function_args2  : 
-                |   ',' expression function_args2
+function_args2  :                                                           { $$ = nullptr; }
+                |   ',' expression function_args2                           { AST* param = new AST(AST_PARAM2, { $2 }, 0);
+                                                                              std::vector<AST*> list;
+                                                                              list.push_back(param);
+                                                                              if ($3) {
+                                                                                list.insert(list.end(), $3->son.begin(), $3->son.end());
+                                                                              }
+                                                                              $$ = new AST(AST_FUNCTION_ARGS, list);
+                                                                            }
                 ;
 
-print           :   LIT_STRING print2
-                |   expression print2
+print           :   LIT_STRING print2                                       { std::vector<AST*> elements;
+                                                                              elements.push_back(new AST(AST_SYMBOL, {}, $1));
+                                                                              if ($2) {
+                                                                                elements.insert(elements.end(), $2->son.begin(), $2->son.end());
+                                                                              }
+                                                                              $$ = new AST(AST_PRINT, elements);
+                                                                            }
+                |   expression print2                                       { std::vector<AST*> elements;
+                                                                              elements.push_back($1);
+                                                                              if ($2) {
+                                                                                elements.insert(elements.end(), $2->son.begin(), $2->son.end());
+                                                                              }
+                                                                              $$ = new AST(AST_PRINT, elements);
+                                                                            }
                 ;
 
-print2          :   
-                |   LIT_STRING print2
-                |   expression print2
+print2          :                                                           { $$ = nullptr; }
+                |   LIT_STRING print2                                       { std::vector<AST*> elements;
+                                                                              elements.push_back(new AST(AST_SYMBOL, {}, $1));
+                                                                              if ($2) {
+                                                                                elements.insert(elements.end(), $2->son.begin(), $2->son.end());
+                                                                              }
+                                                                              $$ = new AST(AST_PRINT, elements);
+                                                                            }
+                |   expression print2                                       { std::vector<AST*> elements;
+                                                                              elements.push_back($1);
+                                                                              if ($2) {
+                                                                                elements.insert(elements.end(), $2->son.begin(), $2->son.end());
+                                                                              }
+                                                                              $$ = new AST(AST_PRINT, elements);
+                                                                            }
                 ;
 
 %%

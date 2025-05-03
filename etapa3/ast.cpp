@@ -8,7 +8,6 @@ using namespace std;
 
 string ASTtypeNAMES[] = {
     "AST_ROOT",
-    "AST_TYPE",
     "AST_SYMBOL",
     "AST_VAR_DEC",
     "AST_TYPE_INT",
@@ -24,7 +23,13 @@ string ASTtypeNAMES[] = {
     "AST_COMMAND_LIST",
     "AST_COMMAND",
     "AST_COMMAND_EQ",
+    "AST_COMMAND_VEC_EQ",
+    "AST_COMMAND_READ",
+    "AST_COMMAND_RETURN",
+    "AST_COMMAND_PRINT",
     "AST_EXPRESSION",
+    "AST_LIT",
+    "AST_EXPRESSION_VEC",
     "AST_ADD",
     "AST_SUB", 
     "AST_MULT",
@@ -38,6 +43,16 @@ string ASTtypeNAMES[] = {
     "AST_EQ", 
     "AST_GE",
     "AST_LE",
+    "AST_PARENTHESIS",
+    "AST_FUNCTION_CALL",
+    "AST_FUNCTION_ARGS",
+    "AST_PARAM2",
+    "AST_PRINT",
+    "AST_COMMAND_IF",
+    "AST_COMMAND_IF_ELSE",
+    "AST_COMMAND_WHILE_DO",
+    "AST_COMMAND_DO_WHILE",
+    "AST_COMMAND_PV",
 };
 
 
@@ -55,3 +70,274 @@ void astPrint(AST* node, int level) {
         astPrint(s, level + 1);
     }
 }
+
+void astToFile(AST* node, FILE* file){
+
+    if (!node) return;
+    switch (node->type) {
+        case AST_ROOT:
+            for (AST* child : node->son) {
+                astToFile(child, file);
+            }
+            break;
+        case AST_SYMBOL:
+            fprintf(file, "%s", node->symbol->text.c_str());
+            break;
+        case AST_VAR_DEC:
+            astToFile(node->son[0], file);
+            fprintf(file, "%s = ", node->symbol->text.c_str());
+            astToFile(node->son[1], file);
+            fprintf(file, ";\n");
+            break;
+        case AST_TYPE_INT:
+            fprintf(file, "int ");
+            break;
+        case AST_TYPE_BYTE:
+            fprintf(file, "byte ");
+            break;
+        case AST_TYPE_REAL:
+            fprintf(file, "real ");
+            break;
+
+        //vector
+        case AST_VECTOR_DEC:
+            astToFile(node->son[0], file); // type
+            fprintf(file, "%s", node->symbol->text.c_str()); // name
+            astToFile(node->son[1], file); // vector size
+            astToFile(node->son[2], file); // vector init
+            fprintf(file, ";\n");
+            break;
+        case AST_VECTOR_SIZE:
+            fprintf(file, "[%s]", node->symbol->text.c_str()); // size num
+            break;
+        case AST_VECTOR_INIT:
+            fprintf(file, " = ");
+            astToFile(node->son[0], file); // first param
+            for (size_t i = 1; i < node->son.size(); ++i) { // params
+                fprintf(file, ", ");
+                astToFile(node->son[i], file);
+            }
+            break;
+
+        // function
+        case AST_FUNCTION_DEC:
+            astToFile(node->son[0], file); // type
+            fprintf(file, "%s", node->symbol->text.c_str()); // name
+            fprintf(file, "(");
+            astToFile(node->son[1], file); //param list
+            fprintf(file, ")"); 
+            astToFile(node->son[2], file); // command block
+            break;
+        case AST_PARAM_LIST:
+            astToFile(node->son[0], file); // first param
+            for (size_t i = 1; i < node->son.size(); ++i) { // params
+                fprintf(file, ", ");
+                astToFile(node->son[i], file);
+            }
+            break;
+        case AST_PARAM:
+            astToFile(node->son[0], file); // type
+            fprintf(file, " %s", node->symbol->text.c_str()); // name
+            break;
+        case AST_COMMAND_BLOCK:
+            fprintf(file, "{\n");
+            astToFile(node->son[0], file); // command list
+            fprintf(file, "}\n");
+            break;
+        case AST_COMMAND_LIST:
+            for (AST* child : node->son) { // commands
+                astToFile(child, file);
+            }
+            break;
+
+        // commands
+        case AST_COMMAND:
+            astToFile(node->son[0], file); // command block
+            break;
+        case AST_COMMAND_EQ:
+            fprintf(file, "%s = ", node->symbol->text.c_str()); // var name =
+            astToFile(node->son[0], file); // command block
+            fprintf(file, ";\n");
+            break;
+        case AST_COMMAND_VEC_EQ:
+            fprintf(file, "%s[", node->symbol->text.c_str()); //vec name
+            astToFile(node->son[0], file); // vec position
+            fprintf(file, "] = ");
+            astToFile(node->son[1], file); // expression
+            fprintf(file, ";\n");
+            break;
+        case AST_COMMAND_READ:
+            fprintf(file, "read ");
+            fprintf(file, "%s", node->symbol->text.c_str()); //var
+            fprintf(file, ";\n");
+            break;
+        case AST_COMMAND_RETURN:
+            fprintf(file, "return ");
+            astToFile(node->son[0], file); 
+            fprintf(file, ";\n");
+            break;
+        case AST_COMMAND_PRINT:
+            fprintf(file, "print");
+            astToFile(node->son[0], file); 
+            fprintf(file, ";\n");
+            break;
+        case AST_PRINT:
+            for (AST* child : node->son) { // commands
+                fprintf(file, " ");
+                astToFile(child, file);
+            }
+            break;
+        case AST_COMMAND_PV:
+            fprintf(file, ";");
+            break;
+
+        // expressions
+        case AST_EXPRESSION: 
+            fprintf(file, "%s", node->symbol->text.c_str()); //var
+            break;
+        case AST_LIT:
+            astToFile(node->son[0], file);
+            break;
+        case AST_EXPRESSION_VEC:
+            fprintf(file, "%s[", node->symbol->text.c_str()); // name
+            astToFile(node->son[0], file);
+            fprintf(file, "]");
+            break;
+        case AST_ADD:
+            astToFile(node->son[0], file);
+            fprintf(file, " + ");
+            astToFile(node->son[1], file);
+            break;
+        case AST_SUB:
+            astToFile(node->son[0], file);
+            fprintf(file, " - ");
+            astToFile(node->son[1], file);
+            break;
+        case AST_MULT:
+            astToFile(node->son[0], file);
+            fprintf(file, " * ");
+            astToFile(node->son[1], file);
+            break;
+        case AST_DIV:
+            astToFile(node->son[0], file);
+            fprintf(file, " / ");
+            astToFile(node->son[1], file);
+            break;
+        case AST_LESS:
+            astToFile(node->son[0], file);
+            fprintf(file, " < ");
+            astToFile(node->son[1], file);
+            break;
+        case AST_GREATER:
+            astToFile(node->son[0], file);
+            fprintf(file, " > ");
+            astToFile(node->son[1], file);
+            break;
+        case AST_AND:
+            astToFile(node->son[0], file);
+            fprintf(file, " & ");
+            astToFile(node->son[1], file);
+            break;
+        case AST_OR:
+            astToFile(node->son[0], file);
+            fprintf(file, " | ");
+            astToFile(node->son[1], file);
+            break;
+        case AST_NOT:
+            astToFile(node->son[0], file);
+            fprintf(file, " ~ ");
+            astToFile(node->son[1], file);
+            break;
+        case AST_DIF:
+            astToFile(node->son[0], file);
+            fprintf(file, " != ");
+            astToFile(node->son[1], file);
+            break;
+        case AST_EQ:
+            astToFile(node->son[0], file);
+            fprintf(file, " == ");
+            astToFile(node->son[1], file);
+            break;
+        case AST_GE:
+            astToFile(node->son[0], file);
+            fprintf(file, " >= ");
+            astToFile(node->son[1], file);
+            break;
+        case AST_LE:
+            astToFile(node->son[0], file);
+            fprintf(file, " <= ");
+            astToFile(node->son[1], file);
+            break;
+        case AST_PARENTHESIS:
+            fprintf(file, "(");
+            astToFile(node->son[0], file);
+            fprintf(file, ")");
+            break;
+        case AST_FUNCTION_CALL:
+            fprintf(file, "%s(", node->symbol->text.c_str()); // name
+            astToFile(node->son[0], file);
+            fprintf(file, ")");
+            break;
+        case AST_FUNCTION_ARGS:
+            astToFile(node->son[0], file); // first param
+            for (size_t i = 1; i < node->son.size(); ++i) { // params
+                fprintf(file, ", ");
+                astToFile(node->son[i], file);
+            }
+            break;
+        case AST_PARAM2:
+            astToFile(node->son[0], file);
+            break;
+
+        // conditionals
+        case AST_COMMAND_IF:
+            fprintf(file, "if (");
+            astToFile(node->son[0], file); //condition
+            fprintf(file, ")");
+            astToFile(node->son[1], file); // command
+            break;
+        case AST_COMMAND_IF_ELSE:
+            fprintf(file, "if (");
+            astToFile(node->son[0], file); //condition
+            fprintf(file, ")");
+            astToFile(node->son[1], file); // command if
+            fprintf(file, " else ");
+            astToFile(node->son[2], file); // command else
+            break;
+        case AST_COMMAND_WHILE_DO:
+            fprintf(file, "while ");
+            astToFile(node->son[0], file); //condition
+            fprintf(file, " do ");
+            astToFile(node->son[1], file); // command
+            break;
+        case AST_COMMAND_DO_WHILE:
+            fprintf(file, "do ");
+            astToFile(node->son[0], file); //command
+            fprintf(file, " while ");
+            astToFile(node->son[1], file); // command if
+            fprintf(file, ";");
+            break;
+        default:
+            fprintf(file, "UNKNOWN(%d)", node->type);
+            break;
+    }
+/*
+while x<02 do
+    {
+    x = x + 1;
+    print ".";
+    }
+
+  x = 1;
+  do
+    {
+    x = incn(x,1);
+    y = incn(y,y);
+    } while (x<01);
+*/
+}
+/*
+
+    AST_COMMAND_WHILE_DO,
+    AST_COMMAND_DO_WHILE,
+*/

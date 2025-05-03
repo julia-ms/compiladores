@@ -12,7 +12,6 @@ using namespace std;
 
 enum ASTtypes {
     AST_ROOT,
-    AST_TYPE,
     AST_SYMBOL,
     AST_VAR_DEC,
     AST_TYPE_INT,
@@ -28,7 +27,13 @@ enum ASTtypes {
     AST_COMMAND_LIST,
     AST_COMMAND,
     AST_COMMAND_EQ,
+    AST_COMMAND_VEC_EQ,
+    AST_COMMAND_READ,
+    AST_COMMAND_RETURN,
+    AST_COMMAND_PRINT,
     AST_EXPRESSION,
+    AST_LIT,
+    AST_EXPRESSION_VEC,
     AST_ADD,
     AST_SUB, 
     AST_MULT,
@@ -42,6 +47,16 @@ enum ASTtypes {
     AST_EQ, 
     AST_GE,
     AST_LE,
+    AST_PARENTHESIS,
+    AST_FUNCTION_CALL,
+    AST_FUNCTION_ARGS,
+    AST_PARAM2,
+    AST_PRINT,
+    AST_COMMAND_IF,
+    AST_COMMAND_IF_ELSE,
+    AST_COMMAND_WHILE_DO,
+    AST_COMMAND_DO_WHILE,
+    AST_COMMAND_PV,
 };
 
 struct AST {
@@ -54,5 +69,7 @@ struct AST {
 };
 
 void astPrint(AST* node, int level = 0);
+
+void astToFile(AST* node, FILE* file);
 
 #endif
