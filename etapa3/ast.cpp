@@ -2,7 +2,9 @@
 // ast.cpp
 
 #include "ast.hpp"
+#include "symbols.hpp"
 #include <stdio.h>
+#include <cstring>
 
 using namespace std;
 
@@ -81,7 +83,29 @@ void astToFile(AST* node, FILE* file){
             }
             break;
         case AST_SYMBOL:
-            fprintf(file, "%s", node->symbol->text.c_str());
+        switch (node->symbol->type) {
+            case 1:{
+                const char* original = node->symbol->text.c_str();
+                char* temp = (char*)malloc(strlen(original) + 1);
+                strcpy(temp, original);
+                char* reversed = reverseeINT(temp);
+                fprintf(file, "%s", reversed);
+                free(temp);
+                break;
+            }
+            case 2:{
+                const char* original = node->symbol->text.c_str();
+                char* temp = (char*)malloc(strlen(original) + 1);
+                strcpy(temp, original);
+                char* reversed = reverseeREAL(temp);
+                fprintf(file, "%s", reversed);
+                free(temp);
+                break;
+            }
+            default:
+                fprintf(file, "%s", node->symbol->text.c_str());
+                break;
+        }
             break;
         case AST_VAR_DEC:
             astToFile(node->son[0], file);
@@ -107,9 +131,16 @@ void astToFile(AST* node, FILE* file){
             astToFile(node->son[2], file); // vector init
             fprintf(file, ";\n");
             break;
-        case AST_VECTOR_SIZE:
-            fprintf(file, "[%s]", node->symbol->text.c_str()); // size num
-            break;
+        case AST_VECTOR_SIZE:{
+            fprintf(file, "[");
+            const char* original = node->symbol->text.c_str();
+            char* temp = (char*)malloc(strlen(original) + 1);
+            strcpy(temp, original);
+            char* reversed = reverseeINT(temp);
+            fprintf(file, "%s", reversed);
+            free(temp);
+            fprintf(file, "]");
+            break;}
         case AST_VECTOR_INIT:
             fprintf(file, " = ");
             astToFile(node->son[0], file); // first param
@@ -321,23 +352,32 @@ void astToFile(AST* node, FILE* file){
             fprintf(file, "UNKNOWN(%d)", node->type);
             break;
     }
-/*
-while x<02 do
-    {
-    x = x + 1;
-    print ".";
-    }
 
-  x = 1;
-  do
-    {
-    x = incn(x,1);
-    y = incn(y,y);
-    } while (x<01);
-*/
 }
-/*
 
-    AST_COMMAND_WHILE_DO,
-    AST_COMMAND_DO_WHILE,
-*/
+
+char* reverseeINT(char* num) {
+    int len = strlen(num);
+    for (int i = 0; i < len / 2; i++) {
+        char temp = num[i];
+        num[i] = num[len - i - 1];
+        num[len - i - 1] = temp;
+    }
+    return num;
+}
+
+char* reverseeREAL(char* num){
+
+    char* num1 = strtok(num, "/");
+    char* num2 = strtok(NULL, "/");
+    
+    reverseeINT(num1);
+    reverseeINT(num2);
+
+    size_t revSize = strlen(num1) + strlen(num2) + 2;
+    char* rev = (char*)malloc(revSize);
+    snprintf(rev, revSize, "%s/%s", num1, num2);
+
+    return rev;
+
+}

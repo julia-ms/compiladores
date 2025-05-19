@@ -61,8 +61,8 @@ enum ASTtypes {
 
 struct AST {
     int type;
-    SYMBOL* symbol;
     vector<AST*> son;
+    SYMBOL* symbol;
 
     AST(int t, vector<AST*> v, SYMBOL* s = nullptr)
         : type(t), son(v), symbol(s) {}
@@ -71,5 +71,9 @@ struct AST {
 void astPrint(AST* node, int level = 0);
 
 void astToFile(AST* node, FILE* file);
+
+char* reverseeINT(char* num);
+
+char* reverseeREAL(char* num);
 
 #endif

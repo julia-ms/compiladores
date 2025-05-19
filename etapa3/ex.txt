@@ -1,15 +1,2 @@
 int x = 15;
-int vec[3] = 7,8,9;
-int incn (int a, int n )
-  {
-  while x<02 do
-    {
-    x = x + 1;
-    print ".";
-    }
-  do
-    {
-    x = incn(x,1);
-    y = incn(y,y);
-    } while (x<01);
-  }
+real y = 7;
