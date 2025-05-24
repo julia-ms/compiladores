@@ -1,0 +1,16 @@
+int x = 4;
+real w = 4/8;
+int k = 8;
+int v[8];
+
+int main(){
+  if(4<5){
+
+  }
+  while (x != 4) do {
+        
+    }
+}
+real main(){
+
+}

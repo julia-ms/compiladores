@@ -1,0 +1,10 @@
+b = 4 + 2;
+a = 8 * 9 / 3;
+a = g;
+a = a(8, 5, a*9);
+
+
+// pode definnir uma variavel dentro de uma função? ex: int x = 4;
+// chamada de função dentro do bloco pode ser vazia?
+// as chaves do if são opcionais? pode ter mais de um comando?
+// print pode ser vazio?
