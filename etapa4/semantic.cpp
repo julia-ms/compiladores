@@ -1,3 +1,6 @@
+// Julia Mombach da Silva
+// Compiladores - Etapa 4
+
 #include "semantic.hpp"
 #include "symbols.hpp"
 #include <map>
@@ -277,6 +280,10 @@ int checkNodeDataType(AST* node){
     if(node->type == AST_COMMAND_EQ){
         int exprType = checkNodeDataType(node->son[0]);
         int varType = node->symbol->dataType;
+        if(node->symbol->type==SYMBOL_TK_IDENTIFIER_VECTOR || node->symbol->type==SYMBOL_TK_IDENTIFIER_FUNCTION){
+            fprintf(stderr, "SEMANTIC ERROR: %s is vector or function, not variable\n", node->symbol->text.c_str());
+            semanticErrors++;
+        }
         if(varType != exprType){
              fprintf(stderr, "SEMANTIC ERROR: incompatible variable and expression types\n");
              semanticErrors++;
@@ -346,7 +353,23 @@ int checkNodeDataType(AST* node){
         node->dataType = checkNodeDataType(node->son[0]);
         return node->dataType;
     }
-    
+    if(node->type ==  AST_COMMAND_VEC_EQ){
+        int exprType = checkNodeDataType(node->son[1]);
+        int varType = node->symbol->dataType;
+        if(!areCompatible(exprType, varType)){
+            fprintf(stderr, "SEMANTIC ERROR: expression not compatible with vectors's type\n");
+            semanticErrors++;
+        }
+        int indexType = checkNodeDataType(node->son[0]);
+        if(indexType != DATATYPE_INT && indexType != DATATYPE_CHAR){
+            fprintf(stderr, "SEMANTIC ERROR: vectors's index needs to be type int or char\n");
+            semanticErrors++;
+        }
+        if(node->symbol->type != SYMBOL_TK_IDENTIFIER_VECTOR){
+            fprintf(stderr, "SEMANTIC ERROR: %s is not a vector\n", node->symbol->text.c_str());
+            semanticErrors++;
+        }
+    }
     if(isAritmethic(node->type)){
         int leftType = checkNodeDataType(node->son[0]);
         int rightType = checkNodeDataType(node->son[1]);

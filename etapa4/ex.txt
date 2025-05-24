@@ -1,16 +1,9 @@
-int x = 4;
-real w = 4/8;
-int k = 8;
-int v[8];
-
-int main(){
-  if(4<5){
+int v[5];
+real t = 8/5;
+int x = 0;
+int main(int k){
+  if(v[5] + t){
 
   }
-  while (x != 4) do {
-        
-    }
 }
-real main(){
-
-}
+real x = 8/7;

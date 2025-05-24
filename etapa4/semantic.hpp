@@ -1,3 +1,6 @@
+// Julia Mombach da Silva
+// Compiladores - Etapa 4
+
 #include "ast.hpp"
 
 // seta o datatype dos literais
