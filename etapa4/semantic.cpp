@@ -78,6 +78,8 @@ void checkDeclarations(AST* node){
 
             }else if(node->symbol->dataType == DATATYPE_BYTE && node->son[1]->symbol->dataType == DATATYPE_INT){
 
+            }else if(node->symbol->dataType == DATATYPE_BYTE && node->son[1]->symbol->dataType == DATATYPE_CHAR){
+
             }else{
                 semanticErrors++;
                 fprintf(stderr, "SEMANTIC ERROR: wrong lit type in var %s\n", node->symbol->text.c_str());
@@ -284,7 +286,7 @@ int checkNodeDataType(AST* node){
             fprintf(stderr, "SEMANTIC ERROR: %s is vector or function, not variable\n", node->symbol->text.c_str());
             semanticErrors++;
         }
-        if(varType != exprType){
+        if(!areCompatible(varType, exprType)){
              fprintf(stderr, "SEMANTIC ERROR: incompatible variable and expression types\n");
              semanticErrors++;
              node->dataType = DATATYPE_INVALID;
@@ -454,6 +456,10 @@ bool areCompatible(int dataType1, int dataType2){
     else if (dataType1 == DATATYPE_INT && dataType2 == DATATYPE_INT) return true;
     else if (dataType1 == DATATYPE_BYTE && dataType2 == DATATYPE_BYTE) return true;
     else if (dataType1 == DATATYPE_BOOL && dataType2 == DATATYPE_BOOL) return true;
+    else if (dataType1 == DATATYPE_BYTE && dataType2 == DATATYPE_INT) return true;
+    else if (dataType1 == DATATYPE_INT && dataType2 == DATATYPE_BYTE) return true;
+    else if (dataType1 == DATATYPE_BYTE && dataType2 == DATATYPE_CHAR) return true;
+    else if (dataType1 == DATATYPE_CHAR && dataType2 == DATATYPE_BYTE) return true;
     else return false;
 }
 
