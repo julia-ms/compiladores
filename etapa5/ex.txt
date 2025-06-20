@@ -1,0 +1,8 @@
+int a = 8;
+int main(int x, int y){
+    a = 7 - 9 / 3 * y;
+    do{
+        y = 8;
+        y = x + 9;
+    }while(x < 7);
+}

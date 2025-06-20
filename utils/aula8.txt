@@ -1,0 +1,165 @@
+// aula do dia 05/06
+
+// tac.hpp
+
+// Júlia Mombach da Silva
+
+#ifndef TAC_HEADER
+#define TAC_HEADER
+
+#define MAX_SONS 4
+
+#include "symbols.hpp"
+#include "ast.hpp"
+#include <vector>
+
+using namespace std;
+
+enum TACtypes {
+    TAC_ROOT,
+    TAC_SYMBOL,
+    TAC_VAR_DEC,
+    TAC_TYPE_INT,
+    TAC_ADD
+
+};
+
+struct TAC {
+    int type;
+    SYMBOL* res;
+    SYMBOL* op1;
+    SYMBOL* op2;
+    TAC* prev;
+    TAC* next;
+public:
+TAC(int t, SYMBOL* r, SYMBOL* o1, SYMBOL* o2):
+    type(t), res(r), op1(o1), op2(o2) {prev=next=0;};
+};
+
+void tacPrintSingle(TAC* tac);
+void tacPrintBackwards(TAC* tac);
+
+TAC* tacjoin(TAC* l1, TAC* l2);
+
+TAC* generateCode(AST* node);
+
+
+
+#endif
+
+//==================================================================
+//tac.cpp 
+
+#include "tac.hpp"
+#include <vector>
+
+using namespace std;
+
+string TACtypeNames[] = {
+    "TAC_ROOT",
+    "TAC_SYMBOL",
+    "TAC_VAR_DEC",
+    "TAC_TYPE_INT",
+    "TAC_ADD"
+};
+
+
+void tacPrintSingle(TAC* tac){
+    if(!tac) return;
+    fprint(stderr, "TAC(%s, %s, %s, %s)\n", 
+        TACtypeNames[node->type].c_str(),  //node->type ou tac->type?
+        (tac->res)?tac->res->text.c_str():"",
+        (tac->op1)?tac->op1->text.c_str():"",
+        (tac->op2)?tac->op2->text.c_str():"" );
+}
+void tacPrintBackwards(TAC* tac){
+    for(; tac; tac = tac->prev){
+        if(TAC->type != TAC_SYMBOL) tacPrintSingle(tac);
+    }
+
+}
+TAC* tacjoin(TAC* l1, TAC* l2){
+    TAC* t;
+    if(!l1) return l2;
+    if(!l2) return l1;
+    for(t = l2. t ->prev; t = t->prev) ;
+    t->prev = l1;
+    return l2;
+}
+
+TAC* makeIfThen(TAC* code0, TAC* code1);
+
+TAC* generateCode(AST*node){
+    int i = 0;
+    TAC* result = 0;
+    TAC* code[MAX_SONS]={0,0,0,0};
+
+    if(!node) return;
+
+    for(auto s: node->son) code[i++] = generateCode(s);
+
+    switch(node->type){
+        case AST_SYMBOL: 
+            result = new TAC(TAC_SYMBOL, node->symbol, 0, 0); 
+            break;
+        case AST_ADD:
+            result = tacjoin(tacJoin(code[0], code[1]), new TAC(TAC_ADD, makeTemp(), code[0]?code[0]->res:0, code[1]?code[1]->res:0));
+            break;
+        case AST_ASS: 
+            result = tacJoin(code[0], new TAC(TAC_ASS, node->symbol, code[0]?code[0]-<res:0,0));
+            break;
+        case AST_IFT: result = makeIfThen(code[0] code[1]);
+            break;
+        default: 
+            result = tacjoin(tacjoin(tacjoin(code[0], code[1]), code[2]), code[3]);
+    }
+
+    return result;
+}
+
+TAC* makeIfThen(TAC* code0, TAC* code1){
+    TAC *ntif = 0;
+    TAC *ntlab = 0;
+    SYMBOL *newLAbel = makeLabel();
+
+    ntif = new TAC(TAC_IF0, newLAbel, code[0]?code0->res:0, 0);
+    ntlab = new TAC(TAC_LABEL, newlabel, 0, 0);
+    ntif->prev = code0;
+    ntlab->prev = code1;
+    return tacJoin(ntif, ntlab);
+
+}
+
+
+// parser
+include tac.hpp
+program: ldec { astPrint($1); tacPrintBackwards(generateCode($1)); }
+
+
+// symbols.hpp
+
+SYMBOL* makeTemp(void);
+
+// symbols.cpp
+
+SYMBOL* makeTemp(void){
+    static int serialNumber = 0;
+    static char buffer[32] = "";
+    snprintf(buffer,32, "temp%d, serialNumber++);
+    return symbolInsert(SYMBOL_ID, buffer);
+}
+
+SYMBOL* makeLabel(void){
+    static int serialNumber = 0;
+    static char buffer[32] = "";
+    snprintf(buffer,32, "label%d, serialNumber++);
+    return symbolInsert(SYMBOL_ID, buffer);
+}
+
+
+
+
+
+//==================================
+Sobre gerar o assembly:
+gcc -S code.c 

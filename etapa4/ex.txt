@@ -3,7 +3,9 @@ byte x = 7;
 byte b = 4;
 int l = 'b';
 real t = 7/8;
+int v[5];
 
-int main(int y){
-    l = x;
+int main(int q){
+    v[b] = b;
+    return b+7;
 }
