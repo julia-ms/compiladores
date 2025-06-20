@@ -388,18 +388,21 @@ int checkNodeDataType(AST* node){
     }
 
     if(isLogical(node->type)){
+        node->dataType = DATATYPE_BOOL;
         if(node->type == AST_NOT){
-            if(node->son[0]->dataType != DATATYPE_BOOL){
+            if(checkNodeDataType(node->son[0]) != DATATYPE_BOOL){
                 fprintf(stderr, "SEMANTIC ERROR: variable %s is not bool\n", node->son[0]->symbol->text.c_str());
                 semanticErrors++;
             }
         }else if(node->type == AST_AND || node->type == AST_OR){
-            if(node->son[0]->dataType != DATATYPE_BOOL || node->son[1]->dataType != DATATYPE_BOOL){
-                fprintf(stderr, "SEMANTIC ERROR: variable %s is not bool", node->son[0]->symbol->text.c_str());
+            int leftType = checkNodeDataType(node->son[0]);
+            int rightType = checkNodeDataType(node->son[1]);
+            if(leftType != DATATYPE_BOOL || rightType != DATATYPE_BOOL){
+                fprintf(stderr, "SEMANTIC ERROR: variable is not bool");
                 semanticErrors++;
             }
         }
-        node->dataType = DATATYPE_BOOL;
+        return node->dataType;
     }
 
     if(isRelational(node->type)){

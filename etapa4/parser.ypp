@@ -177,7 +177,7 @@ expression      :   TK_IDENTIFIER                                           { $$
                 |   expression '>' expression                               { $$ = new AST(AST_GREATER, {$1, $3}, 0); }
                 |   expression '&' expression                               { $$ = new AST(AST_AND, {$1, $3}, 0); }
                 |   expression '|' expression                               { $$ = new AST(AST_OR, {$1, $3}, 0); }
-                |   expression '~' expression                               { $$ = new AST(AST_NOT, {$1, $3}, 0); }
+                |   '~' expression                                          { $$ = new AST(AST_NOT, {$2}, 0); }
                 |   expression OPERATOR_DIF expression                      { $$ = new AST(AST_DIF, {$1, $3}, 0); }
                 |   expression OPERATOR_EQ expression                       { $$ = new AST(AST_EQ, {$1, $3}, 0); }
                 |   expression OPERATOR_GE expression                       { $$ = new AST(AST_GE, {$1, $3}, 0); }

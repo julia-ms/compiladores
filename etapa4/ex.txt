@@ -6,6 +6,7 @@ real t = 7/8;
 int v[5];
 
 int main(int q){
-    v[b] = b;
-    return b+7;
+    if(~(l < x) | (v['a'] == b)){
+
+    }
 }
