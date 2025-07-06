@@ -103,7 +103,8 @@ vector_init     :                                                           { $$
                 |   '=' literal vector_lits                                 { std::vector<AST*> elements;
                                                                               elements.push_back($2);
                                                                               if ($3) {
-                                                                                elements.insert(elements.end(), $3->son.begin(), $3->son.end());
+                                                                                elements.insert(elements.end(), $3->son.begin(), $3->son.end()); 
+                                                                                delete $3;
                                                                               }
                                                                               $$ = new AST(AST_VECTOR_INIT, elements);
                                                                             }
@@ -114,6 +115,7 @@ vector_lits     :                                                           { $$
                                                                               elements.push_back($2);
                                                                               if ($3) {
                                                                                 elements.insert(elements.end(), $3->son.begin(), $3->son.end());
+                                                                                delete $3;
                                                                               }
                                                                               $$ = new AST(AST_VECTOR_INIT, elements);
                                                                             }
@@ -125,6 +127,7 @@ function_init   :                                                           { $$
                                                                               list.push_back(param);
                                                                               if ($3) {
                                                                                 list.insert(list.end(), $3->son.begin(), $3->son.end());
+                                                                                delete $3;
                                                                               }
                                                                               $$ = new AST(AST_PARAM_LIST, list);
                                                                             }          
@@ -136,6 +139,7 @@ function_init2  :                                                           { $$
                                                                               list.push_back(param);
                                                                               if ($4) {
                                                                                 list.insert(list.end(), $4->son.begin(), $4->son.end());
+                                                                                delete $4;
                                                                               }
                                                                               $$ = new AST(AST_PARAM_LIST, list);
                                                                             }
@@ -187,12 +191,13 @@ expression      :   TK_IDENTIFIER                                           { $$
                 |   TK_IDENTIFIER '(' function_args ')'                     { $$ = new AST(AST_FUNCTION_CALL, {$3}, $1); }
                 ;
 
-function_args   :                                                           { $$ = nullptr; }
+function_args   :                                                           { $$ = new AST(AST_FUNCTION_ARGS, {});  }
                 |   expression function_args2                               { AST* param = new AST(AST_PARAM2, { $1 }, 0);
                                                                               std::vector<AST*> list;
                                                                               list.push_back(param);
                                                                               if ($2) {
                                                                                 list.insert(list.end(), $2->son.begin(), $2->son.end());
+                                                                                delete $2;
                                                                               }
                                                                               $$ = new AST(AST_FUNCTION_ARGS, list);
                                                                             }
@@ -204,6 +209,7 @@ function_args2  :                                                           { $$
                                                                               list.push_back(param);
                                                                               if ($3) {
                                                                                 list.insert(list.end(), $3->son.begin(), $3->son.end());
+                                                                                delete $3;
                                                                               }
                                                                               $$ = new AST(AST_FUNCTION_ARGS, list);
                                                                             }
@@ -213,6 +219,7 @@ print           :   LIT_STRING print2                                       { st
                                                                               elements.push_back(new AST(AST_SYMBOL, {}, $1));
                                                                               if ($2) {
                                                                                 elements.insert(elements.end(), $2->son.begin(), $2->son.end());
+                                                                                delete $2;
                                                                               }
                                                                               $$ = new AST(AST_PRINT, elements);
                                                                             }
@@ -220,6 +227,7 @@ print           :   LIT_STRING print2                                       { st
                                                                               elements.push_back($1);
                                                                               if ($2) {
                                                                                 elements.insert(elements.end(), $2->son.begin(), $2->son.end());
+                                                                                delete $2;
                                                                               }
                                                                               $$ = new AST(AST_PRINT, elements);
                                                                             }
@@ -230,6 +238,7 @@ print2          :                                                           { $$
                                                                               elements.push_back(new AST(AST_SYMBOL, {}, $1));
                                                                               if ($2) {
                                                                                 elements.insert(elements.end(), $2->son.begin(), $2->son.end());
+                                                                                delete $2;
                                                                               }
                                                                               $$ = new AST(AST_PRINT, elements);
                                                                             }
@@ -237,6 +246,7 @@ print2          :                                                           { $$
                                                                               elements.push_back($1);
                                                                               if ($2) {
                                                                                 elements.insert(elements.end(), $2->son.begin(), $2->son.end());
+                                                                                delete $2;
                                                                               }
                                                                               $$ = new AST(AST_PRINT, elements);
                                                                             }

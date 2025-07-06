@@ -382,3 +382,11 @@ char* reverseeREAL(char* num){
 
 }
 
+
+void freeAST(AST* ast) {
+    if (!ast) return;
+    for(auto child : ast->son) {
+        freeAST(child);
+    }
+    delete ast;
+}

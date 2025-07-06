@@ -1,8 +1,38 @@
-int a = 8;
-int main(int x, int y){
-    a = 7 - 9 / 3 * y;
-    do{
-        y = 8;
-        y = x + 9;
-    }while(x < 7);
+int m = 4;
+int v[5] = 18, 19, 7, 5, 3;
+int vec[87];
+real rr = 5/777;
+real vr[3] = 7/8, 9/1, 2/77;
+int vvvv[01] = 'a',0,'b',0,0,0,0,0,0,0;
+
+int dois(int a, int b, int c, int d, int e, int f){
+    m = main();
+    if(a < b){
+        a = 8;
+    }else{
+        a = b;
+    };;;;
+    read e;
+    read f;
+    print a a b "hhhhhh";
+    print "OK!\n"; 
+    {{}} {}
 }
+/--
+comentario
+--/
+int main(){
+    m = dois(a, b, c, d, e, f);
+    do{
+        v[5] = 2;
+        vr[1] = 8/4 - 7/3;
+    }while(a != b+7);
+
+    while(d < 2) do{
+        v['a'] = 'd';
+        rr = 471/89 + 5/7 * vr[2];
+    }
+    return a + b *c;
+}
+
+

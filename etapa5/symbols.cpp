@@ -75,3 +75,10 @@ SYMBOL* makeConst(int value) {
     sprintf(buffer, "%d", value);
     return symbolInsert(SYMBOL_LIT_INT, buffer);
 }
+
+void freeSymbols() {
+    for (auto& entry : SymbolTable) {
+        delete entry.second;  // libera o símbolo
+    }
+    SymbolTable.clear();  // limpa o mapa
+}

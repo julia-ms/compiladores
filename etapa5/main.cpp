@@ -72,7 +72,7 @@ int main(int argc, char** argv){
     checkDeclarations(root);
     checkUndeclared();
     checkNodeDataType(root);
-/*
+
     printf("\nSymbols table: \n\n");
     printSymbolsTable();
 
@@ -85,20 +85,24 @@ int main(int argc, char** argv){
         fprintf(stderr, "Nenhuma AST gerada.\n");
     }
 
-*/
     fprintf(stderr, "SEMANTIC ERRORS: %d\n\n", semanticErrors);
     if(semanticErrors > 0){
         exit(4);
     }
 
-    tacPrintBackwards(generateCode(root));
-   
-    
+    //tacPrintBackwards(generateCode(root));
+    TAC* tacRoot = generateCode(root);
+
+    tacPrintBackwards(tacRoot);
+
+    freeTAC(tacRoot);
+    freeAST(root);
+    freeSymbols();
+
     //astToFile(root, output);
 
     fclose(yyin);
     fclose(output);
-    
 
     exit(0);
 }

@@ -45,7 +45,7 @@ string TACtypeNames[] = {
 TAC* makeVectorDec(AST* node);
 TAC* makeVecAssign(AST* node);
 TAC* binOperations(int type, TAC* code1, TAC* code2);
-TAC* makeFunc(AST* node);
+TAC* makeFunc(AST* node, TAC* code1, TAC* code2);
 TAC* makeFuncCall(AST* node);
 TAC* makeIfThen(TAC* code0, TAC* code1);
 TAC* makeIfThenElse(TAC* code0, TAC* code1, TAC* code2);
@@ -68,6 +68,11 @@ TAC* tacJoin(TAC* l1, TAC* l2){
 
 void tacPrintSingle(TAC* tac) {
     if (!tac) return;
+
+    if (tac->type < 0 || tac->type >= (int)(sizeof(TACtypeNames) / sizeof(string))) {
+        fprintf(stderr, "ERRO: Tipo de TAC inválido: %d\n", tac->type);
+        return;
+    }
     fprintf(stderr, "TAC(%s, %s, %s, %s)\n",
         TACtypeNames[tac->type].c_str(),
         tac->res ? tac->res->text.c_str() : "",
@@ -78,42 +83,47 @@ void tacPrintSingle(TAC* tac) {
 void tacPrintBackwards(TAC* tac){
     for(; tac; tac = tac->prev){
         if(tac->type != TAC_SYMBOL && tac->type != TAC_EXPRESSION) tacPrintSingle(tac);
+        //tacPrintSingle(tac);
     }
 }
 
 TAC* generateCode(AST* node) {
-    int i = 0;
     TAC* result = 0;
-    TAC* code[MAX_SONS]={0,0,0,0};
-
+    //TAC* code[MAX_SONS]={0,0,0,0} ;
+    std::vector<TAC*> code;
+    code.reserve(MAX_SONS); 
     if(!node) return nullptr;
-
-    for(auto s: node->son) code[i++] = generateCode(s);
-
-
+    if(node->type != AST_VECTOR_DEC && node->type != AST_PRINT && node->type != AST_FUNCTION_CALL && node->type != AST_COMMAND_VEC_EQ && node->type != AST_COMMAND_RETURN){
+        for(auto s: node->son){
+        //code[i++] = generateCode(s);
+            code.push_back(generateCode(s));
+        }
+    }
     switch (node->type) {
         case AST_SYMBOL: 
             result = new TAC(TAC_SYMBOL, node->symbol, 0, 0); 
             break;
         case AST_EXPRESSION: 
-            result = new TAC(TAC_EXPRESSION, node->symbol, 0, 0); 
+            result = new TAC(TAC_EXPRESSION, node->symbol, 0, 0);
             break;
-        case AST_VAR_DEC:                                                                       // TAC(TAC_ASS, y, 7, )
-            result = tacJoin(code[0], new TAC(TAC_ASS, node->symbol, node->son[1]->symbol,0));  // nome da var, oq vai inserir nela
+        case AST_VAR_DEC:                                                                       // TAC(TAC_ASS, y, 7, ) 
+            result = tacJoin(code[1], new TAC(TAC_ASS, node->symbol, code[1]?code[1]->res:0,0)); // nome da var, oq vai inserir nela
             break;
-        case AST_VECTOR_DEC: {                                                                  // TAC(TAC_VECTOR_DEC, v, 4, )
+        case AST_VECTOR_DEC: {                                                               // TAC(TAC_VECTOR_DEC, v, 4, )
             result = makeVectorDec(node);                                                       // nome, tamanho
             break;                                                                              // TAC(TAC_VECTOR_INIT, v, 0, 1) 
-        }                                                                                       // nome, indice, valor
-
+        }                                                                                   // nome, indice, valor
 
         // commands
-        case AST_COMMAND_EQ:                                                                    // igual dec_var
-            result = tacJoin(code[0], new TAC(TAC_ASS, node->symbol, code[0]?code[0]->res:0,0));
-            break;
+        case AST_COMMAND_EQ:{             
+                                                           // igual dec_var
+            TAC* assign_tac = new TAC(TAC_ASS, node->symbol, code[0] ? code[0]->res : nullptr, nullptr);
+            result = tacJoin(code[0], assign_tac); 
+            //result = tacJoin(code[0], new TAC(TAC_ASS, node->symbol, code[0]?code[0]->res:0,0));
+            break;}
         case AST_EXPRESSION_VEC: {                                                              // TAC(TAC_EXP_VEC, temp1, v, 3)
-            TAC* indexCode = generateCode(node->son[0]);                                        // onde vai armazenar, nome do vetor, indice 
-            TAC* vecRead = new TAC(TAC_EXP_VEC, makeTemp(), node->symbol, indexCode->res);
+            TAC* indexCode = code[0];
+            TAC* vecRead = new TAC(TAC_EXP_VEC, makeTemp(), node->symbol, indexCode?indexCode->res:0);
             return tacJoin(indexCode, vecRead);
         }
         case AST_COMMAND_VEC_EQ:
@@ -159,8 +169,12 @@ TAC* generateCode(AST* node) {
             result = tacJoin(tacJoin(code[0], code[1]), new TAC(TAC_NOT, makeTemp(), code[0]?code[0]->res:0, 0));
             break;
         case AST_FUNCTION_DEC:
-            result = makeFunc(node);
+            result = makeFunc(node, code[1], code[2]);
             break; 
+        case AST_PARAM: {
+            result = new TAC(TAC_SYMBOL, node->symbol, nullptr, nullptr);
+            break;
+        }
         case AST_FUNCTION_CALL:
             result = makeFuncCall(node);
             break;
@@ -180,7 +194,7 @@ TAC* generateCode(AST* node) {
             result = makePrint(node);
             break;
         case AST_COMMAND_READ:
-            result = tacJoin(code[0], new TAC(TAC_READ, node->symbol, 0,0));
+            result = new TAC(TAC_READ, node->symbol, 0,0);
             break;
         case AST_COMMAND_RETURN:{
             TAC* exprCode = generateCode(node->son[0]);
@@ -189,9 +203,17 @@ TAC* generateCode(AST* node) {
             break;
         }
 
-        default: 
-            result = tacJoin(tacJoin(tacJoin(code[0], code[1]), code[2]), code[3]);
+        default: {
+            if(code.empty()){
+                result = nullptr;
+            }else{
+                result = code[0];
+                for(size_t i = 1; i < code.size(); i++){
+                    result = tacJoin(result, code[i]);
+                }
+            }
             break;
+        }
     }
 
     return result;
@@ -229,20 +251,10 @@ TAC* binOperations(int tacType, TAC* code0, TAC* code1){
     return tacJoin(tacJoin(code0, code1), new TAC(tacType, makeTemp(), code0?code0->res:0, code1?code1->res:0));
 }
 
-TAC* makeFunc(AST* node) {
+TAC* makeFunc(AST* node, TAC* code1, TAC* code2) {
     TAC* beginFunc = new TAC(TAC_BEGIN_FUNC, node->symbol, 0, 0);
-    TAC* paramCode = 0;
-    AST* paramList = node->son[1];
-    if (paramList) {
-        for (size_t i = 0; i < paramList->son.size(); i++) {
-            SYMBOL* indexSymbol = makeConst(i);
-            TAC* paramTac = new TAC(TAC_PARAM, paramList->son[i]->symbol, node->symbol, indexSymbol);
-            paramCode = tacJoin(paramCode, paramTac);
-        }
-    }
-    TAC* bodyCode = generateCode(node->son[2]); // cmd block
     TAC* endFunc = new TAC(TAC_END_FUNC, node->symbol, 0, 0);
-    return tacJoin(tacJoin(tacJoin(beginFunc, paramCode), bodyCode), endFunc);
+    return tacJoin(tacJoin(tacJoin(beginFunc, code1), code2), endFunc);
 }
 
 TAC* makeFuncCall(AST* node) {
@@ -270,7 +282,6 @@ TAC* makeIfThen(TAC* code0, TAC* code1){
     tacIf->prev = code0;
     tacLabel->prev = code1;
     return tacJoin(tacIf, tacLabel);
-
 }
 
 TAC* makeIfThenElse(TAC* code0, TAC* code1, TAC* code2){
@@ -308,9 +319,18 @@ TAC* makeDoWhile(TAC* code0, TAC* code1) {
 TAC* makePrint(AST* node) {
     TAC* result = 0;
     for (auto s : node->son) {
-        TAC* childCode = generateCode(s);
-        TAC* printTac = new TAC(TAC_PRINT, childCode ? childCode->res : s->symbol, 0, 0);
-        result = tacJoin(result, tacJoin(childCode, printTac));
+        SYMBOL* childCode = s->symbol;
+        TAC* printTac = new TAC(TAC_PRINT, childCode, 0, 0);
+        result = tacJoin(result, printTac);
     }
     return result;
+}
+
+void freeTAC(TAC* tac) {
+    TAC* current = tac;
+    while (current) {
+        TAC* prevTac = current->prev; 
+        delete current;
+        current = prevTac;
+    }
 }

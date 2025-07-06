@@ -1,11 +1,11 @@
 CXX = g++
-CXXFLAGS = -std=c++11 -Wall 
+CXXFLAGS = -std=c++11 -Wall -g -fsanitize=address 
 
 TARGET = etapa5
 OBJS = lex.yy.o main.o symbols.o parser.tab.o ast.o semantic.o tac.o
 
 $(TARGET): $(OBJS)
-	$(CXX) $(OBJS) -o $(TARGET)
+	$(CXX) $(CXXFLAGS) $(OBJS) -o $(TARGET)
 
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@

@@ -48,7 +48,7 @@ char* reverseREAL(char* num);
 [a-zA-Z_][a-zA-Z0-9_]*      { yylval.symbol = symbolInsert(SYMBOL_IDENTIFIER, yytext); return TK_IDENTIFIER; }
 
 [0-9]+                      { yylval.symbol = symbolInsert(SYMBOL_LIT_INTEGER, reverseINT(yytext)); return LIT_INT; }
-[0-9]+\/[0-9]+              { yylval.symbol = symbolInsert(SYMBOL_LIT_REAL, reverseREAL(yytext)); return LIT_REAL; }
+[0-9]+\/[0-9]+              { char* reversed = reverseREAL(yytext); yylval.symbol = symbolInsert(SYMBOL_LIT_REAL, reversed); free(reversed); return LIT_REAL; }
 \"([^\\\"]|\\.)*\"          { yylval.symbol = symbolInsert(SYMBOL_LIT_STRING, yytext); return LIT_STRING; }
 \'[^\']\'                   { yylval.symbol = symbolInsert(SYMBOL_LIT_CHAR, yytext); return LIT_CHAR; }
 

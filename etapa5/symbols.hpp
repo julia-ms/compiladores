@@ -50,6 +50,7 @@ SYMBOL* makeTemp();
 SYMBOL* makeLabel();
 SYMBOL* makeConst(int value);
 
+void freeSymbols();
 
 
 #endif

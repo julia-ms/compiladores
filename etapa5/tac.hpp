@@ -67,5 +67,5 @@ void tacPrintBackwards(TAC* tac);
 TAC* tacJoin(TAC* l1, TAC* l2);
 TAC* generateCode(AST* node);
 TAC* makeIfThen(TAC* code0, TAC* code1);
-
+void freeTAC(TAC* tac);
 #endif

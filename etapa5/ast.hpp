@@ -77,4 +77,5 @@ char* reverseeINT(char* num);
 
 char* reverseeREAL(char* num);
 
+void freeAST(AST* ast);
 #endif
