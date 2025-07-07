@@ -1,0 +1,23 @@
+int var1 = 5;
+int var2 = 1;
+int i = 0;
+
+int main(int x){
+    while(i < 5) do{
+        x = x + var1;
+        i = i + 1;
+    }
+
+    if(x  < 999){
+        print "entrei\n";
+    }
+    print "resultado: " x "\n";
+}
+
+/--
+Falta: 
+and, or, not
+read
+chamada de função
+vetor
+--/
