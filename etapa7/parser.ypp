@@ -1,0 +1,352 @@
+// Julia Mombach da Silva
+// Compiladores - etapa 3
+
+%{
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string>
+    #include "symbols.hpp"
+    #include "ast.hpp"
+    #include "tac.hpp"
+    using namespace std;
+    int getLineNumber();
+
+    int yylex();
+    int syntaxErrors = 0;
+    void yyerror(string msg);
+
+    AST* root;
+%}
+
+%union {
+    SYMBOL* symbol;
+    AST* ast;
+}
+
+%token <symbol> KW_BYTE
+%token <symbol> KW_INT
+%token <symbol> KW_REAL
+ 
+%token KW_IF
+%token KW_ELSE
+%token KW_DO
+%token KW_WHILE
+%token KW_READ
+%token KW_PRINT
+%token KW_RETURN
+ 
+%token OPERATOR_LE
+%token OPERATOR_GE
+%token OPERATOR_EQ
+%token OPERATOR_DIF
+ 
+%token <symbol> TK_IDENTIFIER
+ 
+%token <symbol> LIT_INT
+%token <symbol> LIT_CHAR
+%token <symbol> LIT_REAL
+%token <symbol> LIT_STRING
+
+%token TOKEN_ERROR
+
+%left '<' '>' OPERATOR_DIF OPERATOR_EQ OPERATOR_GE OPERATOR_LE
+%left '='
+%left '+' '-'
+%left '*' '/'
+%left '&' '~' '|'
+
+%type <ast> program
+%type <ast> ldef
+%type <ast> def
+%type <ast> type
+%type <ast> literal
+%type <ast> vector_init
+%type <ast> vector_lits
+%type <ast> function_init
+%type <ast> function_init2
+%type <ast> command_block
+%type <ast> command_list
+%type <ast> command
+%type <ast> expression
+%type <ast> function_args
+%type <ast> function_args2
+%type <ast> print
+%type <ast> print2
+
+
+%start program
+
+%%
+
+program         :   ldef                                                    { root = $$; }
+                ;
+
+ldef            :   def ldef                                                { $$ = new AST(AST_ROOT, { $1, $2 }); }
+                |                                                           { $$ = nullptr; }
+                ;
+
+def             :   type TK_IDENTIFIER '=' literal ';'                      { $$ = new AST(AST_VAR_DEC, { $1, $4}, $2); }
+                |   error TK_IDENTIFIER '=' literal ';'                     { delete $2; 
+                                                                              delete $4;
+                                                                              $$ = nullptr;
+                                                                              fprintf(stderr, "Missing type\n");
+                                                                            }
+                |   type error '=' literal ';'                              { delete $1; 
+                                                                              delete $4;
+                                                                              $$ = nullptr;
+                                                                              fprintf(stderr, "Missing variable name\n");
+                                                                            }
+                |   type TK_IDENTIFIER '=' error ';'                        { delete $1; 
+                                                                              delete $2;
+                                                                              $$ = nullptr;
+                                                                              fprintf(stderr, "Missing number\n");
+                                                                            }
+                |   type TK_IDENTIFIER '=' literal error                     { delete $1; 
+                                                                               delete $2;
+                                                                               delete $4;
+                                                                               $$ = nullptr;
+                                                                               fprintf(stderr, "Missing ;\n");
+                                                                            }
+                |   type TK_IDENTIFIER error literal ';'                     { delete $1; 
+                                                                              delete $2;
+                                                                              delete $4;
+                                                                              $$ = nullptr;
+                                                                              fprintf(stderr, "Missing =\n");
+                                                                            }
+                |   type TK_IDENTIFIER '[' LIT_INT ']' vector_init ';'      { $$ = new AST(AST_VECTOR_DEC, { $1, new AST(AST_VECTOR_SIZE, {}, $4), $6}, $2); }
+                |   error TK_IDENTIFIER '[' LIT_INT ']' vector_init ';'     { delete $2;
+                                                                              delete $4;
+                                                                              delete $6;
+                                                                              $$ = nullptr;
+                                                                              fprintf(stderr, "Missing type\n");
+                                                                            }
+                |   type TK_IDENTIFIER '[' error ']' vector_init ';'        { delete $1;
+                                                                              delete $2;
+                                                                              delete $6;
+                                                                              $$ = nullptr;
+                                                                              fprintf(stderr, "Missing valid vector size\n");
+                                                                            }
+                |   type TK_IDENTIFIER '[' LIT_INT ']' error ';'            { delete $1;
+                                                                              delete $2;
+                                                                              delete $4;
+                                                                              $$ = nullptr;
+                                                                              fprintf(stderr, "Vector init error\n");
+                                                                            }
+                |   type TK_IDENTIFIER '(' function_init ')' command_block  { $$ = new AST(AST_FUNCTION_DEC, { $1, $4, $6}, $2); }
+                |   error TK_IDENTIFIER '(' function_init ')' command_block { delete $2;
+                                                                              delete $4;
+                                                                              delete $6;
+                                                                              $$ = nullptr;
+                                                                              fprintf(stderr, "Missing type\n"); 
+                                                                            }
+                ;
+
+type            :   KW_INT                                                  { $$ = new AST(AST_TYPE_INT, {}, 0); }
+                |   KW_BYTE                                                 { $$ = new AST(AST_TYPE_BYTE, {}, 0); }
+                |   KW_REAL                                                 { $$ = new AST(AST_TYPE_REAL, {}, 0); }
+                ;
+
+literal         :   LIT_INT                                                 { $$ = new AST(AST_SYMBOL, {}, $1);}
+                |   LIT_CHAR                                                { $$ = new AST(AST_SYMBOL, {}, $1);}
+                |   LIT_REAL                                                { $$ = new AST(AST_SYMBOL, {}, $1);}
+                ;
+
+vector_init     :                                                           { $$ = nullptr; }
+                |   '=' literal vector_lits                                 { std::vector<AST*> elements;
+                                                                              elements.push_back($2);
+                                                                              if ($3) {
+                                                                                elements.insert(elements.end(), $3->son.begin(), $3->son.end()); 
+                                                                                delete $3;
+                                                                              }
+                                                                              $$ = new AST(AST_VECTOR_INIT, elements);
+                                                                            }
+                ;
+
+vector_lits     :                                                           { $$ = nullptr; }
+                |   ',' literal vector_lits                                 { std::vector<AST*> elements;
+                                                                              elements.push_back($2);
+                                                                              if ($3) {
+                                                                                elements.insert(elements.end(), $3->son.begin(), $3->son.end());
+                                                                                delete $3;
+                                                                              }
+                                                                              $$ = new AST(AST_VECTOR_INIT, elements);
+                                                                            }
+                ;
+
+function_init   :                                                           { $$ = nullptr; }
+                |   type TK_IDENTIFIER function_init2                       { AST* param = new AST(AST_PARAM, { $1 }, $2);
+                                                                              std::vector<AST*> list;
+                                                                              list.push_back(param);
+                                                                              if ($3) {
+                                                                                list.insert(list.end(), $3->son.begin(), $3->son.end());
+                                                                                delete $3;
+                                                                              }
+                                                                              $$ = new AST(AST_PARAM_LIST, list);
+                                                                            }          
+                ;
+
+function_init2  :                                                           { $$ = nullptr; }
+                |   ',' type TK_IDENTIFIER function_init2                   { AST* param = new AST(AST_PARAM, { $2 }, $3);
+                                                                              std::vector<AST*> list;
+                                                                              list.push_back(param);
+                                                                              if ($4) {
+                                                                                list.insert(list.end(), $4->son.begin(), $4->son.end());
+                                                                                delete $4;
+                                                                              }
+                                                                              $$ = new AST(AST_PARAM_LIST, list);
+                                                                            }
+                ;
+
+command_block   :   '{' command_list '}'                                    { $$ = new AST(AST_COMMAND_BLOCK, {$2}, 0); }
+                |   '{' command_list error                                  { delete $2;
+                                                                              $$ = nullptr;
+                                                                              fprintf(stderr, "Missing }\n"); 
+                                                                            }
+                |   error command_list '}'                                  { delete $2;
+                                                                              $$ = nullptr;
+                                                                              fprintf(stderr, "Missing {\n"); 
+                                                                            }
+                ;
+
+command_list    :                                                           { $$ = nullptr; }
+                |   command command_list                                    { if($2){
+                                                                                $2->son.insert($2->son.begin(), $1);
+                                                                                $$ = $2;
+                                                                              }else{
+                                                                                $$ = new AST(AST_COMMAND_LIST, {$1});
+                                                                              }
+                                                                            }
+                ;
+
+command         :   command_block                                           { $$ = new AST(AST_COMMAND, {$1}, 0); }
+                |   TK_IDENTIFIER '=' expression ';'                        { $$ = new AST(AST_COMMAND_EQ, {$3}, $1); }
+                |   TK_IDENTIFIER '=' error ';'                             { delete $1;
+                                                                              $$ = nullptr;
+                                                                              fprintf(stderr, "Invalid expression\n");
+                                                                            }
+                |   TK_IDENTIFIER '[' expression ']' '=' expression ';'     { $$ = new AST(AST_COMMAND_VEC_EQ, {$3, $6}, $1); }
+                |   TK_IDENTIFIER '[' error ']' '=' expression ';'          { delete $1;
+                                                                              delete $6;
+                                                                              $$ = nullptr;
+                                                                              fprintf(stderr, "Missing vector index\n"); 
+                                                                            }
+                |   KW_READ TK_IDENTIFIER ';'                               { $$ = new AST(AST_COMMAND_READ, {}, $2); }
+                |   KW_READ error ';'                                       { 
+                                                                              $$ = nullptr;
+                                                                              fprintf(stderr, "Missing variable\n"); 
+                                                                            }
+                |   KW_PRINT print ';'                                      { $$ = new AST(AST_COMMAND_PRINT, {$2}, 0); }
+                |   KW_RETURN expression ';'                                { $$ = new AST(AST_COMMAND_RETURN, {$2}, 0); }
+                |   KW_IF '(' expression ')' command                        { $$ = new AST(AST_COMMAND_IF, {$3, $5}, 0); }
+                |   KW_IF '(' error ')' command                             { delete $5;
+                                                                              $$ = nullptr;
+                                                                              fprintf(stderr, "Invalid condition\n"); 
+                                                                            }
+                |   KW_IF '(' expression ')' command KW_ELSE command        { $$ = new AST(AST_COMMAND_IF_ELSE, {$3, $5, $7}, 0); }
+                |   KW_IF '(' error ')' command KW_ELSE command             { delete $5;
+                                                                              delete $7;
+                                                                              $$ = nullptr;
+                                                                              fprintf(stderr, "Invalid condition\n"); 
+                                                                            }
+                |   KW_WHILE expression KW_DO command                       { $$ = new AST(AST_COMMAND_WHILE_DO, {$2, $4}, 0); }
+                |   KW_WHILE error KW_DO command                            { 
+                                                                              delete $4;
+                                                                              $$ = nullptr;
+                                                                              fprintf(stderr, "Invalid condition\n"); 
+                                                                            }
+                |   KW_DO command KW_WHILE expression ';'                   { $$ = new AST(AST_COMMAND_DO_WHILE, {$2, $4}, 0); }
+                |   KW_DO command KW_WHILE error ';'                        { 
+                                                                              delete $2;
+                                                                              $$ = nullptr;
+                                                                              fprintf(stderr, "Invalid condition\n"); 
+                                                                            }
+                |   ';'                                                     { $$ = new AST(AST_COMMAND_PV, {}, 0); }
+                ;
+                
+expression      :   TK_IDENTIFIER                                           { $$ = new AST(AST_EXPRESSION, {}, $1); }
+                |   TK_IDENTIFIER '[' expression ']'                        { $$ = new AST(AST_EXPRESSION_VEC, {$3}, $1); }
+                |   literal                                                 { $$ = new AST(AST_LIT, {$1}, 0);}
+                |   expression '+' expression                               { $$ = new AST(AST_ADD, {$1, $3}, 0); }
+                |   expression '-' expression                               { $$ = new AST(AST_SUB, {$1, $3}, 0); }
+                |   expression '*' expression                               { $$ = new AST(AST_MULT, {$1, $3}, 0); }
+                |   expression '/' expression                               { $$ = new AST(AST_DIV, {$1, $3}, 0); }
+                |   expression '<' expression                               { $$ = new AST(AST_LESS, {$1, $3}, 0); }
+                |   expression '>' expression                               { $$ = new AST(AST_GREATER, {$1, $3}, 0); }
+                |   expression '&' expression                               { $$ = new AST(AST_AND, {$1, $3}, 0); }
+                |   expression '|' expression                               { $$ = new AST(AST_OR, {$1, $3}, 0); }
+                |   '~' expression                                          { $$ = new AST(AST_NOT, {$2}, 0); }
+                |   expression OPERATOR_DIF expression                      { $$ = new AST(AST_DIF, {$1, $3}, 0); }
+                |   expression OPERATOR_EQ expression                       { $$ = new AST(AST_EQ, {$1, $3}, 0); }
+                |   expression OPERATOR_GE expression                       { $$ = new AST(AST_GE, {$1, $3}, 0); }
+                |   expression OPERATOR_LE expression                       { $$ = new AST(AST_LE, {$1, $3}, 0); }
+                |   '(' expression ')'                                      { $$ = new AST(AST_PARENTHESIS, {$2}, 0); }
+                |   TK_IDENTIFIER '(' function_args ')'                     { $$ = new AST(AST_FUNCTION_CALL, {$3}, $1); }
+                ;
+
+function_args   :                                                           { $$ = new AST(AST_FUNCTION_ARGS, {});  }
+                |   expression function_args2                               { AST* param = new AST(AST_PARAM2, { $1 }, 0);
+                                                                              std::vector<AST*> list;
+                                                                              list.push_back(param);
+                                                                              if ($2) {
+                                                                                list.insert(list.end(), $2->son.begin(), $2->son.end());
+                                                                                delete $2;
+                                                                              }
+                                                                              $$ = new AST(AST_FUNCTION_ARGS, list);
+                                                                            }
+                ;
+
+function_args2  :                                                           { $$ = nullptr; }
+                |   ',' expression function_args2                           { AST* param = new AST(AST_PARAM2, { $2 }, 0);
+                                                                              std::vector<AST*> list;
+                                                                              list.push_back(param);
+                                                                              if ($3) {
+                                                                                list.insert(list.end(), $3->son.begin(), $3->son.end());
+                                                                                delete $3;
+                                                                              }
+                                                                              $$ = new AST(AST_FUNCTION_ARGS, list);
+                                                                            }
+                ;
+
+print           :   LIT_STRING print2                                       { std::vector<AST*> elements;
+                                                                              elements.push_back(new AST(AST_SYMBOL, {}, $1));
+                                                                              if ($2) {
+                                                                                elements.insert(elements.end(), $2->son.begin(), $2->son.end());
+                                                                                delete $2;
+                                                                              }
+                                                                              $$ = new AST(AST_PRINT, elements);
+                                                                            }
+                |   expression print2                                       { std::vector<AST*> elements;
+                                                                              elements.push_back($1);
+                                                                              if ($2) {
+                                                                                elements.insert(elements.end(), $2->son.begin(), $2->son.end());
+                                                                                delete $2;
+                                                                              }
+                                                                              $$ = new AST(AST_PRINT, elements);
+                                                                            }
+                ;
+
+print2          :                                                           { $$ = nullptr; }
+                |   LIT_STRING print2                                       { std::vector<AST*> elements;
+                                                                              elements.push_back(new AST(AST_SYMBOL, {}, $1));
+                                                                              if ($2) {
+                                                                                elements.insert(elements.end(), $2->son.begin(), $2->son.end());
+                                                                                delete $2;
+                                                                              }
+                                                                              $$ = new AST(AST_PRINT, elements);
+                                                                            }
+                |   expression print2                                       { std::vector<AST*> elements;
+                                                                              elements.push_back($1);
+                                                                              if ($2) {
+                                                                                elements.insert(elements.end(), $2->son.begin(), $2->son.end());
+                                                                                delete $2;
+                                                                              }
+                                                                              $$ = new AST(AST_PRINT, elements);
+                                                                            }
+                ;
+
+%%
+
+void yyerror(string msg){
+    fprintf(stderr, "Syntax error in line %d: ", getLineNumber());
+    syntaxErrors++;
+}

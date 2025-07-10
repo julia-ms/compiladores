@@ -84,8 +84,8 @@ void tacPrintSingle(TAC* tac) {
 
 void tacPrintBackwards(TAC* tac){
     for(; tac; tac = tac->prev){
-        if(tac->type != TAC_SYMBOL && tac->type != TAC_EXPRESSION) tacPrintSingle(tac);
-        //tacPrintSingle(tac);
+        //if(tac->type != TAC_SYMBOL && tac->type != TAC_EXPRESSION) tacPrintSingle(tac);
+        tacPrintSingle(tac);
     }
 }
 
