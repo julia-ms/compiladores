@@ -10,6 +10,7 @@ map<string, string> printSymbolsASM(FILE* fout, TAC* first);
 void printInit(FILE* fout);
 string findVariableByValue(const map<string, string>& variableValues, const string& value);
 bool isNumber(const std::string& s);
+map<string, vector<string>> extractFunctionParams(TAC* first);
 
 void generateASM(TAC* first){
     fprintf(stderr, "\nentrei no asm\n");
@@ -19,7 +20,15 @@ void generateASM(TAC* first){
 
     // tabela de simbolos
     map<string, string>variableValues = printSymbolsASM(fout, first);
+    auto paramsMap = extractFunctionParams(first);
     printInit(fout);
+
+    for (auto it = paramsMap.begin(); it != paramsMap.end(); ++it) {
+        fprintf(stderr, "Function: %s\n", it->first.c_str());
+        for (const auto& param : it->second) {
+            fprintf(stderr, "   param: %s\n", param.c_str());
+        }
+    }
 
     fprintf(fout, "\t.text\n");
     for(tac = first; tac; tac = tac->next){
@@ -53,6 +62,16 @@ void generateASM(TAC* first){
                                 "\tcall printf\n",
                                 tac->res->text.c_str());
             }
+            break;
+        case TAC_READ:
+            fprintf(fout,
+                "\t# TAC_READ %s\n"
+                "\tleaq %s(%%rip), %%rsi\n"
+                "\tleaq scan_fmt(%%rip), %%rdi\n"
+                "\tmovl $0, %%eax\n"
+                "\tcall scanf\n",
+                tac->res->text.c_str(),
+                tac->res->text.c_str());
             break;
         case TAC_ASS:{
             string op1 = tac->op1->text;
@@ -182,6 +201,90 @@ void generateASM(TAC* first){
                             res.c_str());
             break;
         }
+        case TAC_VECTOR_ASS: {
+            std::string vecName = tac->res->text;
+            std::string indexStr = tac->op1->text;
+            std::string valueStr = tac->op2->text;
+
+            if (isNumber(indexStr)) {
+                int offset = stoi(indexStr) * 4;
+
+                if (isNumber(valueStr)) {
+                    fprintf(fout,
+                        "\t# TAC_VECTOR_ASS (literal index, literal value)\n"
+                        "\tmovl $%s, %s+%d(%%rip)\n",
+                        valueStr.c_str(),
+                        vecName.c_str(),
+                        offset
+                    );
+                } else {
+                    fprintf(fout,
+                        "\t# TAC_VECTOR_ASS (literal index, variable value)\n"
+                        "\tmovl %s(%%rip), %%eax\n"
+                        "\tmovl %%eax, %s+%d(%%rip)\n",
+                        valueStr.c_str(),
+                        vecName.c_str(),
+                        offset
+                    );
+                }
+            } else {
+                // index é variável
+                fprintf(fout,
+                    "\t# TAC_VECTOR_ASS (variable index)\n"
+                    "\tmovl %s(%%rip), %%ecx\n"           // ecx = índice
+                    "\tleaq %s(,%%rcx,4), %%rax\n",      // rax = endereço v[index*4]
+                    indexStr.c_str(),
+                    vecName.c_str()
+                );
+
+                if (isNumber(valueStr)) {
+                    fprintf(fout,
+                        "\tmovl $%s, (%%rax)\n",
+                        valueStr.c_str()
+                    );
+                } else {
+                    fprintf(fout,
+                        "\tmovl %s(%%rip), %%edx\n"
+                        "\tmovl %%edx, (%%rax)\n",
+                        valueStr.c_str()
+                    );
+                }
+            }
+            break;
+        }
+        case TAC_EXP_VEC: {
+    std::string result = tac->res->text;
+    std::string vecName = tac->op1->text;
+    std::string indexStr = tac->op2->text;
+
+    fprintf(fout, "\n\t# TAC_EXP_VEC\n");
+
+    if (isNumber(indexStr)) {
+        int offset = stoi(indexStr) * 4;
+        fprintf(fout,
+            "\tmovl %s+%d(%%rip), %%eax\n"
+            "\tmovl %%eax, %s(%%rip)\n",
+            vecName.c_str(),
+            offset,
+            result.c_str()
+        );
+    } else {
+        fprintf(fout,
+            "\tleaq %s(%%rip), %%rdx\n"
+            "\tmovl %s(%%rip), %%eax\n"
+            "\timull $4, %%eax\n"
+            "\tmovslq %%eax, %%rax\n"
+            "\tmovl (%%rdx,%%rax,1), %%eax\n"
+            "\tmovl %%eax, %s(%%rip)\n",
+            vecName.c_str(),
+            indexStr.c_str(),
+            result.c_str()
+        );
+    }
+    break;
+}
+
+
 
         case TAC_IF0:
             fprintf(fout,   "\t#TAC_IF0\n"
@@ -206,6 +309,64 @@ void generateASM(TAC* first){
             break;
         case TAC_LABEL:
                 fprintf(fout, "%s:\n", tac->res->text.c_str());
+                break;
+        
+        case TAC_RETURN: {
+            std::string op1 = tac->res->text;
+
+            if (isNumber(op1)) {
+                fprintf(fout,
+                    "\t# TAC_RETURN\n"
+                    "\tmovl $%s, %%eax\n",
+                    op1.c_str());
+            } else {
+                fprintf(fout,
+                    "\t# TAC_RETURN\n"
+                    "\tmovl %s(%%rip), %%eax\n",
+                    op1.c_str());
+            }
+
+            fprintf(fout,
+                "\tpopq %%rbp\n"
+                "\tret\n"
+            );
+
+            break;
+        }
+        case TAC_FUNC_CALL:
+            fprintf(fout,
+                "\tcall %s\n",
+                tac->op1->text.c_str()
+            );
+            if (tac->res) {
+                fprintf(fout,
+                    "\tmovl %%eax, %s(%%rip)\n",
+                    tac->res->text.c_str());
+            }
+            break;
+        // TAC(TAC_ARG, 3, dois, 0)
+        // TAC(TAC_ARG, a, dois, 1)
+        case TAC_ARG:{
+            string val = tac->res->text; //valor que vai inserir
+            string func = tac->op1->text; // nome da função 
+            int pos = stoi(tac->op2->text);
+            string paramName = paramsMap[func][pos];
+            if (isNumber(val)) {
+                fprintf(fout,   "\t#TAC_ARG (literal)\n"
+                                "\tmovl $%s, %%eax\n"
+                                "\tmovl %%eax, %s(%%rip)\n",
+                                val.c_str(),
+                                paramName.c_str()); 
+            } else {
+                fprintf(fout,   "\t#TAC_ARG (variable)\n"
+                                "\tmovl %s(%%rip), %%eax\n"
+                                "\tmovl %%eax, %s(%%rip)\n",
+                                val.c_str(),
+                                paramName.c_str());
+            }
+            break;
+        }
+
         default:
             break;
         }
@@ -216,12 +377,28 @@ void generateASM(TAC* first){
 
 map<string, string> printSymbolsASM(FILE* fout, TAC* first) {
     map<string, string> variableValues = createSymbolMap();
+    map<string, vector<string>> vectorValues;
+    map<string, int> vectorSizes;
 
     for (TAC* tac = first; tac; tac = tac->next) {
         if (tac->type == TAC_ASS_DEC) {
             if (tac->res && tac->op1) {
                 variableValues[tac->res->text] = tac->op1->text;
             }
+        } else if (tac->type == TAC_VECTOR_DEC) {
+            if (tac->res && tac->op1) {
+                // tac->res → nome do vetor
+                // tac->op1 → tamanho
+                int size = stoi(tac->op1->text);
+                vectorSizes[tac->res->text] = size;
+                variableValues[tac->res->text] = "VECTOR";
+            }
+        } else if (tac->type == TAC_VECTOR_INIT) {
+            string vecName = tac->res->text;
+            int index = stoi(tac->op1->text);
+            string value = tac->op2->text;
+            vectorValues[vecName].resize(max(int(vectorValues[vecName].size()), index + 1));
+            vectorValues[vecName][index] = value;
         }
     }
 
@@ -230,8 +407,22 @@ map<string, string> printSymbolsASM(FILE* fout, TAC* first) {
 
     for (auto it : variableValues) {
         const std::string& val = it.second;
+        const std::string& name = it.first;
 
-        if (!val.empty() && val[0] == '"') {
+        if (val == "VECTOR") {
+            fprintf(fout, "%s:\n", name.c_str());
+            auto itVec = vectorValues.find(name);
+            if (itVec != vectorValues.end() && !itVec->second.empty()) {
+                for (auto value : itVec->second) {
+                    fprintf(fout, "\t.long %s\n", value.c_str());
+                }
+            } else {
+                int size = vectorSizes[name];
+                for (int i = 0; i < size; i++) {
+                    fprintf(fout, "\t.long 0\n");
+                }
+            }
+        }else if (!val.empty() && val[0] == '"') {
             // É string
             fprintf(fout, "%s:\t.string %s\n", 
                 it.first.c_str(),
@@ -250,11 +441,12 @@ map<string, string> printSymbolsASM(FILE* fout, TAC* first) {
 
 
 void printInit(FILE* fout){
-    fprintf(fout, "\n");
     fprintf(fout, "print_int:\n");
     fprintf(fout, "\t.string \"%%d\"\n");
     fprintf(fout, "print_string:\n");
     fprintf(fout, "\t.string \"%%s\"\n");
+    fprintf(fout, "scan_fmt:\n");
+    fprintf(fout, "\t.string \"%%d\"\n");
     fprintf(fout, "\n");
 }
 
@@ -269,4 +461,25 @@ string findVariableByValue(const map<string, string>& variableValues, const stri
 
 bool isNumber(const std::string& s) {
     return !s.empty() && std::all_of(s.begin(), s.end(), ::isdigit);
+}
+
+map<string, vector<string>> extractFunctionParams(TAC* first) {
+    map<string, vector<string>> funcParams;
+
+    for (TAC* tac = first; tac; tac = tac->next) {
+        if (tac->type == TAC_BEGIN_FUNC) {
+            string funcName = tac->res->text;
+            vector<string> params;
+
+            TAC* t = tac->next;
+            while (t && t->type == TAC_SYMBOL) {
+                if(!isNumber(t->res->text)) params.push_back(t->res->text);
+                t = t->next;
+            }
+
+            funcParams[funcName] = params;
+        }
+    }
+
+    return funcParams;
 }

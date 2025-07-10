@@ -39,7 +39,8 @@ string TACtypeNames[] = {
     "TAC_RETURN",
     "TAC_JUMP",
     "TAC_IF1",
-    "TAC_ASS_DEC"
+    "TAC_ASS_DEC",
+    "TAC_VECTOR_ASS"
 
 }; 
 
@@ -83,8 +84,8 @@ void tacPrintSingle(TAC* tac) {
 
 void tacPrintBackwards(TAC* tac){
     for(; tac; tac = tac->prev){
-        if(tac->type != TAC_SYMBOL && tac->type != TAC_EXPRESSION) tacPrintSingle(tac);
-        //tacPrintSingle(tac);
+        //if(tac->type != TAC_SYMBOL && tac->type != TAC_EXPRESSION) tacPrintSingle(tac);
+        tacPrintSingle(tac);
     }
 }
 
@@ -252,7 +253,7 @@ TAC* makeVectorDec(AST* node){
 TAC* makeVecAssign(AST* node) {
     TAC* indexCode = generateCode(node->son[0]); 
     TAC* valueCode = generateCode(node->son[1]);
-    TAC* vecWrite = new TAC(TAC_VECTOR_INIT, node->symbol, indexCode ? indexCode->res : node->son[0]->symbol, valueCode ? valueCode->res : node->son[1]->symbol);
+    TAC* vecWrite = new TAC(TAC_VECTOR_ASS, node->symbol, indexCode ? indexCode->res : node->son[0]->symbol, valueCode ? valueCode->res : node->son[1]->symbol);
     return tacJoin(tacJoin(indexCode, valueCode), vecWrite);
 }
 

@@ -48,7 +48,8 @@ enum TACtypes {
     TAC_RETURN,
     TAC_JUMP,
     TAC_IF1,
-    TAC_ASS_DEC
+    TAC_ASS_DEC,
+    TAC_VECTOR_ASS
 };
 
 struct TAC {

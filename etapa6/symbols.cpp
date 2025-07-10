@@ -99,6 +99,8 @@ map<string, string> createSymbolMap() {
         }else if(s.second->type == SYMBOL_LIT_STRING){
             name = makeStringTemp();
             variableValues[name] = s.second->text;
+        }else if (s.second->type == SYMBOL_TK_IDENTIFIER_VECTOR) {
+            variableValues[s.second->text] = "VECTOR";
         }
     }
     return variableValues;

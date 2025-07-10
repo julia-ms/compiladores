@@ -1,15 +1,25 @@
 int var1 = 5;
 int var2 = 1;
 int i = 0;
+int j = 0;
 
 int main(int x){
-    while(i < 5) do{
-        x = x + var1;
+    print "Digite o valor 1: ";
+    read var1;
+    print "Digite o valor 2: ";
+    read var2;
+    print "qtd de iterações: ";
+    read j;
+    while(i < j) do{
+        x = x + var1 - var2;
         i = i + 1;
+        print "x: " x "\n";
     }
 
-    if(x  < 999){
-        print "entrei\n";
+    if(x < 001){
+        print "eh menor que 100\n";
+    }else{
+        print "eh maior que 100\n";
     }
     print "resultado: " x "\n";
 }
@@ -17,7 +27,6 @@ int main(int x){
 /--
 Falta: 
 and, or, not
-read
 chamada de função
 vetor
 --/
