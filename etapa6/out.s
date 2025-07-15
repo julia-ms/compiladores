@@ -1,43 +1,26 @@
 #VARIABLES
 	.data
+a:	.long 7
 k:	.long 0
+string0:	.string "\n"
+string1:	.string "voltei pra main "
+string2:	.string "y: "
+string3:	.string "z: "
 temp0:	.long 0
 temp1:	.long 0
-temp10:	.long 0
-temp11:	.long 0
-temp12:	.long 0
-temp13:	.long 0
-temp14:	.long 0
-temp15:	.long 0
-temp16:	.long 0
-temp17:	.long 0
-temp18:	.long 0
-temp19:	.long 0
 temp2:	.long 0
-temp20:	.long 0
-temp21:	.long 0
-temp22:	.long 0
-temp23:	.long 0
-temp24:	.long 0
-temp25:	.long 0
-temp26:	.long 0
-temp27:	.long 0
-temp28:	.long 0
-temp29:	.long 0
 temp3:	.long 0
-temp30:	.long 0
-temp31:	.long 0
-temp32:	.long 0
-temp33:	.long 0
-temp34:	.long 0
-temp35:	.long 0
 temp4:	.long 0
 temp5:	.long 0
-temp6:	.long 0
-temp7:	.long 0
-temp8:	.long 0
-temp9:	.long 0
-x:	.long 0
+v:
+	.long 11
+	.long 80
+	.long 33
+	.long 44
+	.long 55
+x:	.long 4
+y:	.long 0
+z:	.long 0
 
 print_int:
 	.string "%d"
@@ -53,228 +36,108 @@ scan_fmt:
 main:
 	pushq   %rbp
 	movq    %rsp, %rbp
-	movl $8, %eax
-	addl $7, %eax
+	#TAC_ASS (literal)
+	movl $3, %eax
+	movl %eax, x(%rip)
+	# TAC_VECTOR_ASS (literal index, literal value)
+	movl $50, v+8(%rip)
+	#TAC_ARG (literal)
+	movl $2, %eax
+	movl %eax, y(%rip)
+	#TAC_ARG (variable)
+	movl a(%rip), %eax
+	movl %eax, z(%rip)
+	call dois
 	movl %eax, temp0(%rip)
 	#TAC_ASS (variable)
 	movl temp0(%rip), %eax
 	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp1(%rip)
-	#TAC_ASS (variable)
-	movl temp1(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp2(%rip)
-	#TAC_ASS (variable)
-	movl temp2(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp3(%rip)
-	#TAC_ASS (variable)
-	movl temp3(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp4(%rip)
-	#TAC_ASS (variable)
-	movl temp4(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp5(%rip)
-	#TAC_ASS (variable)
-	movl temp5(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp6(%rip)
-	#TAC_ASS (variable)
-	movl temp6(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp7(%rip)
-	#TAC_ASS (variable)
-	movl temp7(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp8(%rip)
-	#TAC_ASS (variable)
-	movl temp8(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp9(%rip)
-	#TAC_ASS (variable)
-	movl temp9(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp10(%rip)
-	#TAC_ASS (variable)
-	movl temp10(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp11(%rip)
-	#TAC_ASS (variable)
-	movl temp11(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp12(%rip)
-	#TAC_ASS (variable)
-	movl temp12(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp13(%rip)
-	#TAC_ASS (variable)
-	movl temp13(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp14(%rip)
-	#TAC_ASS (variable)
-	movl temp14(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp15(%rip)
-	#TAC_ASS (variable)
-	movl temp15(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp16(%rip)
-	#TAC_ASS (variable)
-	movl temp16(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp17(%rip)
-	#TAC_ASS (variable)
-	movl temp17(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp18(%rip)
-	#TAC_ASS (variable)
-	movl temp18(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp19(%rip)
-	#TAC_ASS (variable)
-	movl temp19(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp20(%rip)
-	#TAC_ASS (variable)
-	movl temp20(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp21(%rip)
-	#TAC_ASS (variable)
-	movl temp21(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp22(%rip)
-	#TAC_ASS (variable)
-	movl temp22(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp23(%rip)
-	#TAC_ASS (variable)
-	movl temp23(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp24(%rip)
-	#TAC_ASS (variable)
-	movl temp24(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp25(%rip)
-	#TAC_ASS (variable)
-	movl temp25(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp26(%rip)
-	#TAC_ASS (variable)
-	movl temp26(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp27(%rip)
-	#TAC_ASS (variable)
-	movl temp27(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp28(%rip)
-	#TAC_ASS (variable)
-	movl temp28(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp29(%rip)
-	#TAC_ASS (variable)
-	movl temp29(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp30(%rip)
-	#TAC_ASS (variable)
-	movl temp30(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp31(%rip)
-	#TAC_ASS (variable)
-	movl temp31(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp32(%rip)
-	#TAC_ASS (variable)
-	movl temp32(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp33(%rip)
-	#TAC_ASS (variable)
-	movl temp33(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp34(%rip)
-	#TAC_ASS (variable)
-	movl temp34(%rip), %eax
-	movl %eax, x(%rip)
-	movl $8, %eax
-	addl $7, %eax
-	movl %eax, temp35(%rip)
-	#TAC_ASS (variable)
-	movl temp35(%rip), %eax
-	movl %eax, x(%rip)
+
+	#TAC_PRINT
+	leaq string1(%rip), %rsi
+	leaq print_string(%rip), %rdi
+	movl $0, %eax
+	call printf
 
 	#TAC_PRINT
 	movl x(%rip), %esi
 	leaq print_int(%rip), %rdi
 	movl $0, %eax
 	call printf
+
+	#TAC_PRINT
+	leaq string0(%rip), %rsi
+	leaq print_string(%rip), %rdi
+	movl $0, %eax
+	call printf
+
+	#TAC_END_FUNC
+	movl    $0, %eax
+	popq    %rbp
+	ret
+
+	#TAC_BEGIN_FUNC
+	.globl dois
+dois:
+	pushq   %rbp
+	movq    %rsp, %rbp
+
+	#TAC_PRINT
+	leaq string2(%rip), %rsi
+	leaq print_string(%rip), %rdi
+	movl $0, %eax
+	call printf
+
+	#TAC_PRINT
+	movl y(%rip), %esi
+	leaq print_int(%rip), %rdi
+	movl $0, %eax
+	call printf
+
+	#TAC_PRINT
+	leaq string0(%rip), %rsi
+	leaq print_string(%rip), %rdi
+	movl $0, %eax
+	call printf
+
+	#TAC_PRINT
+	leaq string3(%rip), %rsi
+	leaq print_string(%rip), %rdi
+	movl $0, %eax
+	call printf
+
+	#TAC_PRINT
+	movl z(%rip), %esi
+	leaq print_int(%rip), %rdi
+	movl $0, %eax
+	call printf
+
+	#TAC_PRINT
+	leaq string0(%rip), %rsi
+	leaq print_string(%rip), %rdi
+	movl $0, %eax
+	call printf
+	movl y(%rip), %eax
+	addl z(%rip), %eax
+	movl %eax, temp1(%rip)
+
+	# TAC_EXP_VEC
+	movl v+8(%rip), %eax
+	movl %eax, temp2(%rip)
+	movl temp1(%rip), %eax
+	addl temp2(%rip), %eax
+	movl %eax, temp3(%rip)
+
+	# TAC_EXP_VEC
+	movl v+4(%rip), %eax
+	movl %eax, temp4(%rip)
+	movl temp3(%rip), %eax
+	addl temp4(%rip), %eax
+	movl %eax, temp5(%rip)
+	# TAC_RETURN
+	movl temp5(%rip), %eax
+	popq %rbp
+	ret
 
 	#TAC_END_FUNC
 	movl    $0, %eax

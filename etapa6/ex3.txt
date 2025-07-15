@@ -11,10 +11,8 @@ int main(int k){
         i = i + 1;
     }
 
-
-
     i = 0;
-    print "\nEm ordem:\n";
+    print "\nprintando:\n";
     while(i < 6) do{
         val = v[i];
         print "valor " i ": " val "\n";

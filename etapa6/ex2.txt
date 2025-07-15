@@ -1,15 +1,15 @@
 int x = 4;
 int k = 0;
 int a = 7;
-int v[5] = 11, 22, 33, 44, 55;  
+int v[5] = 11, 08, 33, 44, 55;  
 int main(){
     x = 3;
     v[2] = 05;
-    x = dois(3, a);
+    x = dois(2, a);
     print "voltei pra main " x "\n";
 }
 int dois(int y, int z){
     print "y: " y "\n";
     print "z: " z "\n";
-    return y + z + v[2];
+    return y + z + v[2] + v[1];
 }

@@ -19,11 +19,11 @@ void constantFolding(TAC* first);
 void tempOptimizer(TAC* first);
 
 void generateASM(TAC* first){
+    fprintf(stderr, "\nentrei no asm\n");
     functionCallOptimizer(first);
     constantFolding(first);
     tempOptimizer(first);
     tacPrintFoward(first);
-    fprintf(stderr, "\nentrei no asm\n");
     TAC* tac;
     FILE* fout;
     fout = fopen("out.s", "w");

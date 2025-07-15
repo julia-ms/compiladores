@@ -154,7 +154,7 @@ void generateASM(TAC* first){
             } else {
                 fprintf(fout, "\tmovl %s(%%rip), %%eax\n", op1.c_str());
             }
-            fprintf(fout, "\tcltd\n"); // estende sinal para %edx
+            fprintf(fout, "\tcltd\n");
             if (isNumber(op2)) {
                 fprintf(fout, "\tidivl $%s\n", op2.c_str());
             } else {
@@ -253,36 +253,36 @@ void generateASM(TAC* first){
             break;
         }
         case TAC_EXP_VEC: {
-    std::string result = tac->res->text;
-    std::string vecName = tac->op1->text;
-    std::string indexStr = tac->op2->text;
+            string result = tac->res->text;
+            string vecName = tac->op1->text;
+            string indexStr = tac->op2->text;
 
-    fprintf(fout, "\n\t# TAC_EXP_VEC\n");
+            fprintf(fout, "\n\t# TAC_EXP_VEC\n");
 
-    if (isNumber(indexStr)) {
-        int offset = stoi(indexStr) * 4;
-        fprintf(fout,
-            "\tmovl %s+%d(%%rip), %%eax\n"
-            "\tmovl %%eax, %s(%%rip)\n",
-            vecName.c_str(),
-            offset,
-            result.c_str()
-        );
-    } else {
-        fprintf(fout,
-            "\tleaq %s(%%rip), %%rdx\n"
-            "\tmovl %s(%%rip), %%eax\n"
-            "\timull $4, %%eax\n"
-            "\tmovslq %%eax, %%rax\n"
-            "\tmovl (%%rdx,%%rax,1), %%eax\n"
-            "\tmovl %%eax, %s(%%rip)\n",
-            vecName.c_str(),
-            indexStr.c_str(),
-            result.c_str()
-        );
-    }
-    break;
-}
+            if (isNumber(indexStr)) {
+                int offset = stoi(indexStr) * 4;
+                fprintf(fout,
+                    "\tmovl %s+%d(%%rip), %%eax\n"
+                    "\tmovl %%eax, %s(%%rip)\n",
+                    vecName.c_str(),
+                    offset,
+                    result.c_str()
+                );
+            } else {
+                fprintf(fout,
+                    "\tleaq %s(%%rip), %%rdx\n"
+                    "\tmovl %s(%%rip), %%eax\n"
+                    "\timull $4, %%eax\n"
+                    "\tmovslq %%eax, %%rax\n"
+                    "\tmovl (%%rdx,%%rax,1), %%eax\n"
+                    "\tmovl %%eax, %s(%%rip)\n",
+                    vecName.c_str(),
+                    indexStr.c_str(),
+                    result.c_str()
+                );
+            }
+            break;
+        }
 
 
 
@@ -312,7 +312,7 @@ void generateASM(TAC* first){
                 break;
         
         case TAC_RETURN: {
-            std::string op1 = tac->res->text;
+            string op1 = tac->res->text;
 
             if (isNumber(op1)) {
                 fprintf(fout,
@@ -406,8 +406,8 @@ map<string, string> printSymbolsASM(FILE* fout, TAC* first) {
     fprintf(fout, "\t.data\n");
 
     for (auto it : variableValues) {
-        const std::string& val = it.second;
-        const std::string& name = it.first;
+        const string& val = it.second;
+        const string& name = it.first;
 
         if (val == "VECTOR") {
             fprintf(fout, "%s:\n", name.c_str());

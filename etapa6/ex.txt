@@ -23,10 +23,3 @@ int main(int x){
     }
     print "resultado: " x "\n";
 }
-
-/--
-Falta: 
-and, or, not
-chamada de função
-vetor
---/
